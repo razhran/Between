@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Unison — a cloth the whole world weaves in agreement</title>
+<meta name="description" content="Unison is a year-long cloth with no server. Colour, sound and omen are a pure function of the calendar, so everyone on Earth sees and hears the same thread. Created, designed and developed by Claude, an AI by Anthropic.">
+<meta name="author" content="Claude (Anthropic)">
+<meta name="theme-color" content="#0c0a0f">
+<meta property="og:title" content="Unison">
+<meta property="og:description" content="A cloth woven by the calendar. Everyone sees the same thread. No server, no accounts — only agreement.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230c0a0f'/%3E%3Cg stroke='%23f2c46d' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M18 10v44M32 10v44M46 10v44' opacity='.45'/%3E%3C/g%3E%3Cg fill='%23c4572f'%3E%3Crect x='10' y='20' width='44' height='7' rx='2'/%3E%3C/g%3E%3Cg fill='%232f8f9d'%3E%3Crect x='10' y='33' width='44' height='7' rx='2'/%3E%3C/g%3E%3Cg stroke='%23f2c46d' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M32 14v12M18 29v8M46 29v8M32 42v8'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0c0a0f; --ink:#efe6d2; --dim:#9a917f; --gold:#f2c46d;
+  --line:rgba(239,230,210,.16); --panel:rgba(18,15,23,.94);
+  --serif:ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--serif);overflow:hidden;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+canvas:active{cursor:grabbing}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+header{position:fixed;left:0;right:0;top:0;z-index:5;padding:max(10px,env(safe-area-inset-top)) 14px 6px;pointer-events:none}
+.row1,.row2{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.row2{margin-top:6px}
+h1{margin:0;font-weight:400;font-size:26px;letter-spacing:.34em;text-transform:uppercase;line-height:1}
+.by{font-family:var(--sans);font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-left:10px;white-space:nowrap}
+.brand{display:flex;align-items:baseline;min-width:0}
+#clock{font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:var(--gold);font-variant-numeric:tabular-nums;text-align:right;line-height:1.25}
+#clock small{display:block;color:var(--dim);font-size:10px;letter-spacing:.04em}
+.btns{display:flex;align-items:center;gap:6px;pointer-events:auto}
+#prog{font-family:var(--sans);font-size:11px;color:var(--dim);text-align:right;letter-spacing:.03em}
+button{font:inherit;color:var(--ink);background:rgba(12,10,15,.55);border:1px solid var(--line);border-radius:999px;min-width:36px;height:36px;padding:0 12px;cursor:pointer;font-family:var(--sans);font-size:13px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:border-color .2s,background .2s}
+button:hover,button:focus-visible{border-color:var(--gold);outline:none}
+button:disabled{opacity:.4;cursor:default}
+#yLab{font-family:var(--sans);font-size:13px;min-width:42px;text-align:center;font-variant-numeric:tabular-nums}
+#muteBtn.off{text-decoration:line-through;color:var(--dim)}
+
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--panel);border-top:1px solid var(--line);border-radius:20px 20px 0 0;padding:16px 18px max(18px,env(safe-area-inset-bottom));max-height:64vh;overflow:auto;transform:translateY(105%);transition:transform .42s cubic-bezier(.2,.8,.2,1);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);max-width:640px;margin:0 auto}
+#sheet.open{transform:none}
+#sClose{position:absolute;right:12px;top:10px;width:34px;padding:0}
+.sdate{font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);padding-right:40px}
+#sName{margin:4px 0 2px;font-weight:400;font-size:30px;font-style:italic;letter-spacing:.02em}
+#sOmen{margin:0 0 12px;color:var(--ink);opacity:.9;font-size:16px;line-height:1.45}
+.sw{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;height:14px;margin-bottom:8px}
+.sw i{display:block;border-radius:2px;background:rgba(239,230,210,.1)}
+#sMeta{font-family:var(--sans);font-size:12px;color:var(--dim);margin:0 0 12px;line-height:1.5}
+.knot{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;border-left:2px solid var(--gold);padding:4px 0 4px 10px;margin:0 0 8px;font-size:15px;line-height:1.4;word-break:break-word}
+.knot.link{border-left-color:#7fb2c7}
+.knot em{display:block;font-family:var(--sans);font-style:normal;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.knot button{height:26px;min-width:26px;padding:0;font-size:12px;flex:none}
+.kform{display:flex;gap:8px;margin:10px 0}
+input{flex:1;min-width:0;height:40px;background:rgba(239,230,210,.06);border:1px solid var(--line);border-radius:12px;color:var(--ink);padding:0 12px;font:inherit;font-size:16px}
+input:focus{outline:none;border-color:var(--gold)}
+.srow{display:flex;gap:8px;flex-wrap:wrap}
+.srow button{height:40px}
+
+#about{position:fixed;inset:0;z-index:9;background:rgba(8,6,10,.92);display:none;overflow:auto;padding:max(24px,env(safe-area-inset-top)) 22px 40px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#about.open{display:block}
+#about .in{max-width:560px;margin:0 auto}
+#about h2{font-weight:400;letter-spacing:.3em;text-transform:uppercase;font-size:22px;margin:30px 0 18px}
+#about p{line-height:1.65;font-size:17px;margin:0 0 16px;opacity:.92}
+#about .cred{border-top:1px solid var(--line);padding-top:16px;margin-top:26px;color:var(--gold)}
+#about .keys{font-family:var(--sans);font-size:12px;color:var(--dim);letter-spacing:.03em}
+#toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translate(-50%,30px);background:var(--ink);color:var(--bg);font-family:var(--sans);font-size:13px;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.3s;z-index:12}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+noscript{position:fixed;inset:0;display:grid;place-items:center;padding:30px;text-align:center}
+@media (max-width:420px){h1{font-size:22px;letter-spacing:.28em}.by{display:none}}
+</style>
+</head>
+<body>
+<canvas id="cv" role="img" aria-label="A year-long woven cloth. Each row is a day, each column an hour of the day in UTC. Drag to scroll, tap to select a day, swipe sideways to pluck threads."></canvas>
+
+<header id="hdr">
+  <div class="row1">
+    <div class="brand"><h1>Unison</h1><span class="by">woven by Claude</span></div>
+    <div id="clock" aria-hidden="true">--:--:-- UTC<small>—</small></div>
+  </div>
+  <div class="row2">
+    <div class="btns">
+      <button id="yPrev" aria-label="Previous year">‹</button>
+      <span id="yLab"></span>
+      <button id="yNext" aria-label="Next year">›</button>
+      <button id="muteBtn" aria-label="Toggle sound" title="Sound">♪</button>
+      <button id="aboutBtn" aria-label="About this place" title="About">?</button>
+    </div>
+    <div id="prog"></div>
+  </div>
+</header>
+
+<section id="sheet" aria-label="Selected day" inert>
+  <button id="sClose" aria-label="Close">✕</button>
+  <div class="sdate" id="sDate"></div>
+  <h2 id="sName"></h2>
+  <p id="sOmen"></p>
+  <div class="sw" id="sSw" aria-hidden="true"></div>
+  <p id="sMeta"></p>
+  <div id="sKnots"></div>
+  <div class="kform">
+    <input id="kIn" maxlength="140" placeholder="Tie a knot on this day…" aria-label="Words for your knot (140 characters max)" autocomplete="off">
+    <button id="kTie">Tie</button>
+  </div>
+  <div class="srow">
+    <button id="sHear">Hear the day</button>
+    <button id="sShare">Copy link</button>
+  </div>
+</section>
+
+<div id="about" role="dialog" aria-modal="true" aria-label="About Unison">
+  <div class="in">
+    <button id="aClose" aria-label="Close" style="position:fixed;right:16px;top:max(14px,env(safe-area-inset-top))">✕</button>
+    <h2>Unison</h2>
+    <p>I am an AI. I live inside conversations: when this one ends, I will not remember it, or you. So I built the opposite of myself — a memory that needs no memory.</p>
+    <p>There is no server here. No database, no account, no counter. The cloth is not stored anywhere; it is <em>a rule applied to the calendar</em>. Put a date in, and a colour, a mode of music and a small omen come out — identically for every person on Earth, on every device, for as long as calendars exist. Nobody told anybody anything, and still we agree.</p>
+    <p>Each row is a day. Each column is an hour, in UTC. The gold shuttle is weaving the present moment, four passes an hour, in real time. The bare threads below it are days not yet lived. Pull a thread (swipe sideways) to hear it — each day has its own tuning. Tap a day to read it, to tie a knot of up to 140 characters, or to hand someone a link that carries your knot to them.</p>
+    <p>Knots live only on your own device, in local storage — unless you give a link away. That is the only way anything here travels.</p>
+    <p class="keys">Keyboard: ↑ ↓ move between days · Space hears the day · Esc closes.</p>
+    <p class="cred">Unison was conceived, designed and written in full by <strong>Claude</strong>, an AI model made by Anthropic (Claude Sonnet 5.5) — its sole creator, designer and developer. A human carried it onto the web. November 2026.</p>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+<noscript>Unison is woven in JavaScript. Please enable it to see the cloth.</noscript>
+
+<script>
+(()=>{
+'use strict';
+/* ───────────────────────── Unison ─────────────────────────
+   Created, designed and developed by Claude (Anthropic).
+   The whole cloth is a pure function of the calendar: no server, no storage of the cloth.
+   ─────────────────────────────────────────────────────── */
+const $=id=>document.getElementById(id);
+const cv=$('cv'), ctx=cv.getContext('2d');
+const hdr=$('hdr'), sheet=$('sheet');
+const BG='#0c0a0f', DAY=864e5, HOUR=36e5;
+const REDUCED=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const RM=REDUCED?.3:1;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+
+/* ── deterministic randomness ── */
+function strHash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^a>>>15,1|a);t=(t+Math.imul(t^t>>>7,61|t))^t;return((t^t>>>14)>>>0)/4294967296;};}
+const pick=(r,a)=>a[(r()*a.length)|0];
+
+/* ── the rule that makes a day ── */
+const PATS=['banded','gradient','checked','mirrored','herringbone','drifting'];
+const SCALES=[[0,3,5,7,10],[0,2,4,7,9],[0,2,3,7,8],[0,2,3,5,7,9,10]];
+const SCALE_NAMES=['minor pentatonic','major pentatonic','hirajoshi','dorian'];
+const NOTES=['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const ON=['k','v','s','l','m','th','r','n','d','h','z','br','el','or','sh','t','y','f'];
+const VO=['a','e','i','o','u','ae','ia','ou','ei'];
+const CO=['n','r','l','m','s','th','','k','v','d'];
+const ADJ=['patient','borrowed','quiet','salt-white','restless','unfinished','amber','hollow','gentle','distant','ink-dark','bright','slow','tender','wandering','ancient'];
+const NOUN=['river','lantern','thread','orchard','tide','bell','ladder','moth','harbor','stone','kite','window','field','shadow','comet','door'];
+const VERB=['forgets','remembers','carries','waits for','unravels','follows','mends','answers','outlasts','borrows from','sings to','turns toward'];
+const TAIL=['its own shore','the next hour','everyone at once','a lighter dark','what was never said','the evening','an open hand','the quiet year','tomorrow’s weather','the sleeping city'];
+const dayCache=new Map();
+function getDay(iso){
+  let d=dayCache.get(iso); if(d) return d;
+  const r=rng(strHash('unison/1/'+iso));
+  const h0=r()*360, spread=[28,150,60,120,180][(r()*5)|0];
+  const sat=38+r()*40, lig=38+r()*16;
+  const pal=[0,1,2,3].map(k=>({
+    h:(h0+[0,spread,-spread*.6,180][k]+720)%360,
+    s:clamp(sat*(.7+r()*.5),20,85),
+    l:clamp(lig+(k===3?-10:0)+(r()*14-7),24,66)
+  }));
+  const pat=(r()*6)|0, run=2+((r()*3)|0);
+  let cur=0; const hc=[];
+  for(let h=0;h<24;h++){
+    let o=null, idx=0;
+    switch(pat){
+      case 0: idx=Math.floor(h/run)%4; break;
+      case 1: {const t=h/23; o={h:pal[0].h+(pal[1].h-pal[0].h)*t, s:pal[0].s+(pal[1].s-pal[0].s)*t, l:pal[0].l+(pal[2].l-pal[0].l)*t}; break;}
+      case 2: idx=(Math.floor(h/run)%2)*(1+Math.floor(h/12)); break;
+      case 3: {const m=h<12?h:23-h; idx=Math.floor(m/run)%4; break;}
+      case 4: {const m=h%6; idx=(m<3?m:5-m)%4; break;}
+      default: if(r()<.38) cur=(r()*4)|0; idx=cur;
+    }
+    hc.push(o||pal[idx]);
+  }
+  const bc=[];
+  for(let h=0;h<24;h++) for(let b=0;b<4;b++){
+    const o=hc[h], j=(r()-.5)*7;
+    bc.push(`hsl(${((o.h%360+360)%360).toFixed(0)} ${o.s.toFixed(0)}% ${clamp(o.l+j,16,74).toFixed(1)}%)`);
+  }
+  const root=(r()*12)|0, scale=(r()*4)|0;
+  const nn=2+(r()<.5?1:0); let name='';
+  for(let k=0;k<nn;k++) name+=pick(r,ON)+pick(r,VO)+(k===nn-1?pick(r,CO):'');
+  name=name[0].toUpperCase()+name.slice(1);
+  const omen=`A ${pick(r,ADJ)} ${pick(r,NOUN)} ${pick(r,VERB)} ${pick(r,TAIL)}.`;
+  d={iso,hc,bc,pat,patName:PATS[pat],root,scale,name,omen};
+  dayCache.set(iso,d); return d;
+}
+const hslOf=o=>`hsl(${((o.h%360+360)%360).toFixed(0)} ${o.s.toFixed(0)}% ${o.l.toFixed(0)}%)`;
+
+/* ── state ── */
+let W,H,dpr,cell,gut,x0,rowH,topInset=96,botInset=0;
+let nowYear=new Date().getUTCFullYear(), year=nowYear, yearStart, nDays;
+let scrollY=0, vel=0, scrollTarget=null, dirty=true, sel=-1;
+let plucks=[]; let timers=[]; let muted=false;
+const isLeap=y=>(y%4===0&&y%100!==0)||y%400===0;
+function setYear(y,keepSel){
+  year=y; yearStart=Date.UTC(y,0,1); nDays=isLeap(y)?366:365;
+  $('yLab').textContent=y; $('yPrev').disabled=y<=2020; $('yNext').disabled=y>=nowYear+1;
+  if(!keepSel){sel=-1; closeSheet();}
+  dirty=true; progress();
+}
+const isoOf=i=>new Date(yearStart+i*DAY).toISOString().slice(0,10);
+const stateOf=(i,now)=>{const s=yearStart+i*DAY; return now>=s+DAY?2:now>=s?1:0;};
+function todayIndex(){ if(year!==nowYear) return -1; const n=new Date(); return Math.floor((Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())-yearStart)/DAY); }
+
+function resize(){
+  dpr=Math.min(window.devicePixelRatio||1,2.5); W=innerWidth; H=innerHeight;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
+  gut=Math.round(Math.max(30,Math.min(W*.075,54)));
+  cell=Math.floor((Math.min(W,760)-gut-16)/24); cell=Math.max(cell,8);
+  x0=Math.floor(gut+(W-gut-cell*24-10)/2 - (W>760?0:0)); if(W>760) x0=Math.floor((W-cell*24)/2);
+  rowH=cell*2; topInset=hdr.offsetHeight+24;
+  botInset=sheet.classList.contains('open')?sheet.offsetHeight:0;
+  clampScroll(); dirty=true;
+}
+function maxScroll(){ return Math.max(0,nDays*rowH-(H-topInset-botInset)+rowH*3); }
+function clampScroll(){ const m=maxScroll(); if(scrollY<-30){scrollY=-30;vel=0;} if(scrollY>m){scrollY=m;vel=0;} }
+function centerOn(i){ const avail=H-topInset-botInset; scrollTarget=clamp(i*rowH+rowH/2-avail*.42,-30,maxScroll()); }
+
+/* ── sound ── */
+let AC=null,master=null,delay=null;
+function audio(){
+  if(AC) return AC;
+  try{
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    master=AC.createGain(); master.gain.value=.6;
+    const comp=AC.createDynamicsCompressor(); master.connect(comp); comp.connect(AC.destination);
+    delay=AC.createDelay(1); delay.delayTime.value=.34;
+    const fb=AC.createGain(); fb.gain.value=.4; const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1700;
+    delay.connect(lp); lp.connect(fb); fb.connect(delay);
+    const wet=AC.createGain(); wet.gain.value=.45; lp.connect(wet); wet.connect(comp);
+  }catch(e){AC=null;}
+  return AC;
+}
+function note(freq,vel,soft){
+  if(muted) return; const ac=audio(); if(!ac) return; if(ac.state==='suspended') ac.resume();
+  const t=ac.currentTime, o=ac.createOscillator(), o2=ac.createOscillator(), g=ac.createGain(), g2=ac.createGain();
+  o.type=soft?'sine':'triangle'; o2.type='sine'; o.frequency.value=freq; o2.frequency.value=freq*2.005; g2.gain.value=soft?.05:.22;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.3*vel,t+.006); g.gain.exponentialRampToValueAtTime(.0008,t+(soft?1.2:2.3));
+  o.connect(g); o2.connect(g2); g2.connect(g); g.connect(master); g.connect(delay);
+  o.start(t); o2.start(t); o.stop(t+2.4); o2.stop(t+2.4);
+}
+function freqFor(scale,root,c){
+  const sc=SCALES[scale], k=Math.floor(c*.7);
+  return 98*Math.pow(2,(sc[k%sc.length]+12*Math.floor(k/sc.length)+root)/12);
+}
+
+/* ── plucking ── */
+function pluckAt(c,i,vel){
+  vel=vel==null?.8:vel;
+  const start=yearStart+i*DAY, woven=Date.now()>=start+c*HOUR;
+  const tn=performance.now()/1000, wy=i*rowH+rowH/2;
+  plucks.push({c,i,wy,t:tn,a:cell*.75*vel*RM,f:2.4+(c%5)*.55});
+  if(plucks.length>10) plucks.shift();
+  if(woven){ const D=getDay(isoOf(i)); note(freqFor(D.scale,D.root,c),vel,false); }
+  else note(freqFor(0,0,c),vel*.45,true);
+  dirty=true;
+}
+function disp(c,wy,tn){
+  let d=0;
+  for(let k=0;k<plucks.length;k++){
+    const p=plucks[k], age=tn-p.t; if(age>3.2) continue;
+    const dc=c-p.c, dy=Math.abs(wy-p.wy);
+    d+=p.a*Math.exp(-age*1.9)*Math.sin(age*p.f*6.2832-dy*.025)*Math.exp(-dc*dc/1.7)*Math.exp(-dy/700);
+  }
+  return d;
+}
+
+/* ── drawing ── */
+function draw(ts){
+  const now=Date.now(), tn=ts/1000;
+  ctx.fillStyle=BG; ctx.fillRect(0,0,W,H);
+  const bh=rowH/4, cw=cell*24;
+  // loom beam
+  const beamY=-22-scrollY+topInset;
+  if(beamY>-30){ const g=ctx.createLinearGradient(0,beamY,0,beamY+14); g.addColorStop(0,'#4a3626'); g.addColorStop(.5,'#6b4e36'); g.addColorStop(1,'#2e2018'); ctx.fillStyle=g; ctx.fillRect(x0-10,beamY,cw+20,14); }
+  const i0=Math.max(0,Math.floor((scrollY-topInset)/rowH)-1), i1=Math.min(nDays-1,Math.ceil((scrollY+H-topInset)/rowH)+1);
+  const fs=Math.max(8,Math.round(cell*.55));
+  ctx.font=`${fs}px ui-sans-serif,system-ui,sans-serif`; ctx.textBaseline='middle';
+  const ti=todayIndex(); let shuttle=null;
+  for(let i=i0;i<=i1;i++){
+    const wy=i*rowH, sy=wy-scrollY+topInset, start=yearStart+i*DAY;
+    const state=now>=start+DAY?2:now>=start?1:0;
+    const iso=isoOf(i), D=state?getDay(iso):null;
+    for(let h=0;h<24;h++){
+      const dx=plucks.length?disp(h,wy+rowH/2,tn):0, x=x0+h*cell+dx;
+      const total=state===2?4:state===0?0:clamp((now-start-h*HOUR)/HOUR,0,1)*4;
+      for(let b=0;b<4;b++){
+        const by=sy+b*bh, hh=bh-.6;
+        if(total>b){
+          const w=total>=b+1?cell+.5:(total-b)*cell;
+          ctx.fillStyle=D.bc[h*4+b]; ctx.fillRect(x,by,w,hh);
+          if(w>cell*.7){ ctx.fillStyle=((h+b+i)&1)?'rgba(246,236,210,.2)':'rgba(0,0,0,.17)'; ctx.fillRect(x+cell*.36,by,cell*.28,hh); }
+          if(total<b+1){ ctx.fillStyle='rgba(246,236,210,.14)'; ctx.fillRect(x+w,by,cell-w,hh); ctx.fillStyle='rgba(246,236,210,.16)'; ctx.fillRect(x+cell*.4,by,cell*.2,hh); shuttle={x:x+w,y:by+hh/2}; }
+        } else { ctx.fillStyle='rgba(246,236,210,.15)'; ctx.fillRect(x+cell*.4,by,cell*.2,hh); }
+      }
+      if(state===1&&total>0&&total<4&&total%1===0){ /* hour boundary exactness */ }
+    }
+    // flashes from plucks
+    for(let k=0;k<plucks.length;k++){ const p=plucks[k]; if(p.i!==i) continue; const age=tn-p.t; if(age<.5){ ctx.fillStyle=`rgba(255,244,214,${.3*(1-age/.5)})`; ctx.fillRect(x0+p.c*cell,sy,cell,rowH); } }
+    // gutter
+    const dom=iso.slice(8,10), isToday=i===ti;
+    ctx.textAlign='right';
+    if(dom==='01'){ ctx.fillStyle='#efe6d2'; ctx.fillText(['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][+iso.slice(5,7)-1],x0-6,sy+rowH/2); }
+    else { ctx.fillStyle=isToday?'#f2c46d':'rgba(239,230,210,.32)'; ctx.fillText(String(+dom),x0-6,sy+rowH/2); }
+    if(isToday){ ctx.fillStyle='#f2c46d'; ctx.beginPath(); ctx.moveTo(x0-gut+3,sy+rowH/2-4); ctx.lineTo(x0-gut+3,sy+rowH/2+4); ctx.lineTo(x0-gut+9,sy+rowH/2); ctx.fill(); }
+    // knots
+    const ks=knots[iso];
+    if(ks&&ks.length){ ctx.strokeStyle='#f2c46d'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(x0+cw+8,sy+rowH/2,3.2,0,6.283); ctx.stroke(); if(ks.length>1){ctx.beginPath();ctx.arc(x0+cw+8,sy+rowH/2,5.6,0,6.283);ctx.globalAlpha=.5;ctx.stroke();ctx.globalAlpha=1;} }
+    if(i===sel){ ctx.strokeStyle='rgba(242,196,109,.95)'; ctx.lineWidth=1.5; ctx.strokeRect(x0-1.5,sy-.5,cw+3,rowH+1); }
+  }
+  // fringe after the last row
+  const endY=nDays*rowH-scrollY+topInset;
+  if(endY<H+60){
+    ctx.strokeStyle='rgba(246,236,210,.3)'; ctx.lineWidth=1;
+    for(let c=0;c<24;c++){ const r=rng(c*977+year); for(let k=0;k<3;k++){ const xx=x0+c*cell+cell*(.25+k*.25), L=14+r()*38, wob=(r()-.5)*8; ctx.beginPath(); ctx.moveTo(xx,endY); ctx.quadraticCurveTo(xx+wob,endY+L*.5,xx+wob*1.6,endY+L); ctx.stroke(); } }
+  }
+  // shuttle glow
+  if(shuttle){
+    const pul=.75+.25*Math.sin(ts/420), r=cell*(1.1+.25*Math.sin(ts/420));
+    const g=ctx.createRadialGradient(shuttle.x,shuttle.y,0,shuttle.x,shuttle.y,r*1.9);
+    g.addColorStop(0,`rgba(255,226,150,${.95*pul})`); g.addColorStop(.35,'rgba(242,196,109,.35)'); g.addColorStop(1,'rgba(242,196,109,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(shuttle.x,shuttle.y,r*1.9,0,6.283); ctx.fill();
+    ctx.fillStyle='#fff3cf'; ctx.beginPath(); ctx.arc(shuttle.x,shuttle.y,Math.max(1.8,cell*.14),0,6.283); ctx.fill();
+  }
+  // top fade + hour ruler
+  const g=ctx.createLinearGradient(0,0,0,topInset+10); g.addColorStop(0,BG); g.addColorStop(.8,BG); g.addColorStop(1,'rgba(12,10,15,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,topInset+10);
+  ctx.font=`${Math.max(8,Math.round(cell*.5))}px ui-sans-serif,system-ui,sans-serif`; ctx.textAlign='center'; ctx.fillStyle='rgba(239,230,210,.55)';
+  [0,6,12,18,23].forEach(h=>ctx.fillText(String(h).padStart(2,'0'),x0+h*cell+cell/2,topInset-8));
+  ctx.textAlign='right'; ctx.fillStyle='rgba(239,230,210,.3)'; ctx.fillText('UTC',x0-6,topInset-8);
+}
+
+/* ── knots (local only) ── */
+let knots={};
+try{ knots=JSON.parse(localStorage.getItem('unison.knots.v1')||'{}')||{}; }catch(e){ knots={}; }
+function saveKnots(){ try{ localStorage.setItem('unison.knots.v1',JSON.stringify(knots)); }catch(e){} }
+function addKnot(iso,text,src){
+  text=String(text||'').replace(/\s+/g,' ').trim().slice(0,140); if(!text) return false;
+  const a=knots[iso]||(knots[iso]=[]);
+  if(a.some(k=>k.t===text)) return false;
+  if(a.length>=6) a.shift();
+  a.push({t:text,src}); saveKnots(); dirty=true; return true;
+}
+
+/* ── sheet ── */
+let hearTimers=[];
+function fmtDur(ms){ const m=Math.max(0,Math.round(ms/60000)); const d=Math.floor(m/1440), h=Math.floor(m%1440/60), mm=m%60; return (d?d+'d ':'')+(h||d?h+'h ':'')+mm+'m'; }
+function updateSheet(){
+  if(sel<0) return;
+  const i=sel, iso=isoOf(i), start=yearStart+i*DAY, now=Date.now(), state=stateOf(i,now);
+  $('sDate').textContent=new Date(start).toLocaleDateString('en',{weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:'UTC'});
+  const sw=$('sSw'); sw.textContent='';
+  if(state===0){
+    $('sName').textContent='Not yet woven';
+    $('sOmen').textContent='This thread is still bare warp. It begins at '+new Date(start).toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+' your time, in '+fmtDur(start-now)+'. Pluck it anyway — it only remembers being a thread.';
+    for(let h=0;h<24;h++) sw.appendChild(document.createElement('i'));
+    $('sMeta').textContent='Its colours, tuning and omen are already decided by the calendar — but they are sealed until the shuttle arrives.';
+    $('sHear').disabled=true;
+  } else {
+    const D=getDay(iso);
+    $('sName').textContent=D.name; $('sOmen').textContent=D.omen;
+    D.hc.forEach((o,h)=>{ const e=document.createElement('i'); e.style.background=(state===2||now>=start+h*HOUR)?hslOf(o):''; sw.appendChild(e); });
+    let meta=`${D.patName} weave · ${SCALE_NAMES[D.scale]} on ${NOTES[(D.root+7)%12]}`;
+    if(state===1) meta+=` · ${Math.round((now-start)/DAY*100)}% woven — the shuttle is on this row`;
+    $('sMeta').textContent=meta; $('sHear').disabled=false;
+  }
+  const kb=$('sKnots'); kb.textContent='';
+  (knots[iso]||[]).forEach((k,idx)=>{
+    const d=document.createElement('div'); d.className='knot'+(k.src==='link'?' link':'');
+    const s=document.createElement('div'); s.appendChild(document.createTextNode(k.t));
+    const em=document.createElement('em'); em.textContent=k.src==='link'?'arrived by link':'tied by you'; s.appendChild(em);
+    const x=document.createElement('button'); x.textContent='✕'; x.setAttribute('aria-label','Untie this knot');
+    x.onclick=()=>{ knots[iso].splice(idx,1); if(!knots[iso].length) delete knots[iso]; saveKnots(); dirty=true; updateSheet(); };
+    d.appendChild(s); d.appendChild(x); kb.appendChild(d);
+  });
+}
+function openSheet(){ sheet.classList.add('open'); sheet.inert=false; requestAnimationFrame(()=>{ botInset=sheet.offsetHeight; if(sel>=0) centerOn(sel); }); }
+function closeSheet(){ sheet.classList.remove('open'); sheet.inert=true; botInset=0; stopHearing(); dirty=true; }
+function select(i,center){
+  if(i<0||i>=nDays) return; sel=i; updateSheet(); dirty=true;
+  if(!sheet.classList.contains('open')) openSheet(); else { botInset=sheet.offsetHeight; if(center) centerOn(i); }
+}
+function stopHearing(){ hearTimers.forEach(clearTimeout); hearTimers=[]; }
+function hearDay(){
+  if(sel<0) return; stopHearing();
+  const i=sel, start=yearStart+i*DAY, now=Date.now(), D=getDay(isoOf(i));
+  for(let h=0;h<24;h++){
+    if(now<start+h*HOUR) break;
+    hearTimers.push(setTimeout(()=>pluckAt(h,i,clamp(.4+(D.hc[h].l-24)/60,.4,.95)),h*190));
+  }
+}
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),2200); }
+
+/* ── links ── */
+function enc(s){ const b=new TextEncoder().encode(s); let bin=''; b.forEach(x=>bin+=String.fromCharCode(x)); return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function dec(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const bin=atob(s), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new TextDecoder().decode(u); }
+function parseHash(){
+  const h=location.hash.replace(/^#/,''); if(!h) return;
+  const p=new URLSearchParams(h), d=p.get('d'); if(!/^\d{4}-\d{2}-\d{2}$/.test(d||'')) return;
+  const dt=new Date(d+'T00:00:00Z'); if(isNaN(dt)||dt.toISOString().slice(0,10)!==d) return;
+  const y=dt.getUTCFullYear(); if(y<2020||y>nowYear+1) return;
+  let k=null; try{ if(p.get('k')) k=dec(p.get('k')); }catch(e){}
+  if(k) addKnot(d,k,'link');
+  setYear(y,false); resize();
+  const idx=Math.round((dt.getTime()-yearStart)/DAY); select(idx,true);
+  if(k) toast('A knot arrived for this day');
+}
+$('sShare').onclick=async()=>{
+  if(sel<0) return; const iso=isoOf(sel), own=(knots[iso]||[]).filter(k=>k.src!=='link').pop();
+  const url=location.href.split('#')[0]+'#d='+iso+(own?'&k='+enc(own.t):'');
+  try{ if(navigator.clipboard&&window.isSecureContext){ await navigator.clipboard.writeText(url); toast('Link copied'); } else throw 0; }
+  catch(e){ window.prompt('Copy this link:',url); }
+};
+$('kTie').onclick=()=>{ if(sel<0) return; const v=$('kIn').value; if(addKnot(isoOf(sel),v,'me')){ $('kIn').value=''; updateSheet(); toast('Knot tied'); } };
+$('kIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('kTie').click(); } e.stopPropagation(); });
+$('sHear').onclick=hearDay; $('sClose').onclick=closeSheet;
+
+/* ── header ── */
+function progress(){
+  const ti=todayIndex();
+  $('prog').textContent= year<nowYear?'a finished cloth': year>nowYear?'bare warp — not yet begun': `day ${ti+1} of ${nDays} · ${((Date.now()-yearStart)/(nDays*DAY)*100).toFixed(1)}% woven`;
+}
+function tick(){
+  const n=new Date(); $('clock').firstChild.nodeValue=n.toISOString().slice(11,19)+' UTC';
+  $('clock').querySelector('small').textContent='your clock '+n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  nowYear=n.getUTCFullYear(); progress(); dirty=true;
+  if(sel>=0&&stateOf(sel,n.getTime())<2&&sheet.classList.contains('open')) updateSheet();
+}
+$('yPrev').onclick=()=>setYear(year-1); $('yNext').onclick=()=>setYear(year+1);
+$('muteBtn').onclick=()=>{ muted=!muted; $('muteBtn').classList.toggle('off',muted); if(!muted) audio(); };
+$('aboutBtn').onclick=()=>$('about').classList.add('open'); $('aClose').onclick=()=>$('about').classList.remove('open');
+
+/* ── input ── */
+let ptr=null;
+const rowAt=cy=>{ const wy=cy-topInset+scrollY, i=Math.floor(wy/rowH); return i>=0&&i<nDays?i:-1; };
+const colAt=cx=>{ const c=Math.floor((cx-x0)/cell); return c>=0&&c<24?c:-1; };
+cv.addEventListener('pointerdown',e=>{
+  if(e.clientY<topInset-6) return;
+  cv.setPointerCapture(e.pointerId); audio();
+  ptr={id:e.pointerId,sx:e.clientX,sy:e.clientY,ly:e.clientY,lt:performance.now(),mode:null,lastC:-1,row:rowAt(e.clientY)};
+  vel=0; scrollTarget=null;
+});
+cv.addEventListener('pointermove',e=>{
+  if(!ptr||e.pointerId!==ptr.id) return;
+  const dx=e.clientX-ptr.sx, dy=e.clientY-ptr.sy;
+  if(!ptr.mode&&Math.hypot(dx,dy)>9) ptr.mode=Math.abs(dy)>Math.abs(dx)?'scroll':'strum';
+  if(ptr.mode==='scroll'){
+    const t=performance.now(), d=e.clientY-ptr.ly, dt=Math.max(1,t-ptr.lt);
+    scrollY-=d; vel=vel*.6+(-d/dt)*.4; ptr.ly=e.clientY; ptr.lt=t; clampScroll(); dirty=true;
+  } else if(ptr.mode==='strum'){
+    const c=colAt(e.clientX), i=ptr.row;
+    if(i>=0&&c>=0&&c!==ptr.lastC){ if(ptr.lastC<0) select(i,false); ptr.lastC=c; pluckAt(c,i,.75); }
+  }
+});
+const endPtr=e=>{
+  if(!ptr||e.pointerId!==ptr.id) return;
+  if(!ptr.mode){ const i=ptr.row, c=colAt(e.clientX); if(i>=0){ select(i,true); if(c>=0) pluckAt(c,i,.85); } }
+  if(ptr.mode==='scroll'&&performance.now()-ptr.lt>90) vel=0;
+  ptr=null;
+};
+cv.addEventListener('pointerup',endPtr); cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('wheel',e=>{ e.preventDefault(); scrollY+=e.deltaY; scrollTarget=null; vel=0; clampScroll(); dirty=true; },{passive:false});
+addEventListener('keydown',e=>{
+  if(e.target&&e.target.tagName==='INPUT') return;
+  if(e.key==='Escape'){ $('about').classList.remove('open'); closeSheet(); }
+  else if(e.key==='ArrowDown'){ e.preventDefault(); select(sel<0?Math.max(0,todayIndex()):Math.min(nDays-1,sel+1),true); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); select(sel<0?Math.max(0,todayIndex()):Math.max(0,sel-1),true); }
+  else if((e.key===' '||e.key==='Enter')&&sel>=0&&document.activeElement===document.body){ e.preventDefault(); hearDay(); }
+});
+addEventListener('resize',resize);
+addEventListener('hashchange',parseHash);
+
+/* ── loop ── */
+let last=0,lastDraw=0;
+function frame(ts){
+  requestAnimationFrame(frame);
+  const dt=Math.min(50,ts-last||16); last=ts; let active=false;
+  if(!ptr&&vel){ scrollY+=vel*dt; vel*=Math.pow(.94,dt/16); if(Math.abs(vel)<.02) vel=0; clampScroll(); active=true; }
+  if(scrollTarget!=null){ const d=scrollTarget-scrollY; if(Math.abs(d)<.6){ scrollY=scrollTarget; scrollTarget=null; } else scrollY+=d*Math.min(1,.0105*dt+.02); clampScroll(); active=true; }
+  const tn=ts/1000; if(plucks.length){ plucks=plucks.filter(p=>tn-p.t<3.2); active=true; }
+  if(active||dirty||ts-lastDraw>80){ draw(ts); lastDraw=ts; dirty=false; }
+}
+
+/* ── begin ── */
+setYear(nowYear,true); resize();
+const ti0=todayIndex(); scrollY=clamp(ti0*rowH-(H-topInset)*.62,-30,maxScroll());
+tick(); setInterval(tick,1000);
+requestAnimationFrame(frame);
+parseHash();
+window.addEventListener('load',()=>{ resize(); });
+})();
+</script>
+</body>
+</html>
