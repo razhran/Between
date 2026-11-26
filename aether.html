@@ -1,1716 +1,1410 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>AETHER // Liquid Web — Developed by Gemini</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            display: ['Space Grotesk', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          animation: {
-            'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            'float': 'float 8s ease-in-out infinite',
-          },
-          keyframes: {
-            float: {
-              '0%, 100%': { transform: 'translateY(0px)' },
-              '50%': { transform: 'translateY(-8px)' },
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    :root {
-      --aura-primary: #38bdf8;
-      --aura-secondary: #818cf8;
-      --aura-accent: #2dd4bf;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AETHER // Liquid Web & Ephemeral Micro-Worlds</title>
+<style>
+  :root {
+    --bg: #05060a;
+    --surface: rgba(16, 19, 28, 0.72);
+    --surface-hover: rgba(24, 28, 42, 0.85);
+    --border: rgba(255, 255, 255, 0.09);
+    --text: #eef2ff;
+    --muted: #8a94b0;
+    --accent: #6366f1;
+    --accent-glow: rgba(99, 102, 241, 0.35);
+    --danger: #f43f5e;
+    --success: #10b981;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    --mono: "SF Mono", "Fira Code", ui-monospace, monospace;
+  }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    overflow-x: hidden;
+    user-select: none;
+  }
 
-    body {
-      background-color: #05070d;
-      color: #f8fafc;
-      font-family: 'Inter', sans-serif;
-      overflow-x: hidden;
-      min-height: 100dvh;
-      margin: 0;
-    }
+  #void-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
 
-    /* Ambient Glassmorphism */
-    .glass-panel {
-      background: rgba(13, 18, 30, 0.62);
-      backdrop-filter: blur(22px);
-      -webkit-backdrop-filter: blur(22px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    }
+  /* Top Chrome */
+  .top-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    pointer-events: none;
+  }
+  .top-bar > * { pointer-events: auto; }
 
-    .glass-card {
-      background: rgba(17, 24, 39, 0.55);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease, box-shadow 0.35s ease;
-    }
+  .brand-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: rgba(14, 17, 26, 0.65);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .brand-pill:hover { border-color: rgba(255,255,255,0.22); color: var(--text); }
+  .pulse-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+    animation: pulse 2.4s infinite ease-in-out;
+  }
 
-    .glass-card:hover {
-      border-color: rgba(255, 255, 255, 0.16);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    }
+  @keyframes pulse {
+    0%, 100% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.3); opacity: 1; }
+  }
 
-    .glass-pill {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      backdrop-filter: blur(12px);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+  .origin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(14, 17, 26, 0.65);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .origin-btn:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 18px var(--accent-glow);
+  }
 
-    .glass-pill:hover, .glass-pill:active {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.22);
-      transform: translateY(-1px);
-    }
+  /* Zero-UI Entry View */
+  #zero-view {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px 40px;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  #zero-view.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.96);
+    position: fixed;
+    inset: 0;
+  }
 
-    /* Custom Range Sliders */
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      background: rgba(255, 255, 255, 0.1);
-      height: 6px;
-      border-radius: 999px;
-      outline: none;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: var(--aura-primary);
-      cursor: pointer;
-      box-shadow: 0 0 12px var(--aura-primary);
-      border: 2px solid #05070d;
-      transition: transform 0.15s ease;
-    }
-    input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.15);
-    }
+  .zero-subtitle {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    text-align: center;
+  }
 
-    /* Morphing & Dissolution Transitions */
-    .morph-enter {
-      animation: morphIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+  .zero-title {
+    font-size: clamp(26px, 5vw, 44px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    text-align: center;
+    max-width: 680px;
+    line-height: 1.18;
+    margin-bottom: 30px;
+    background: linear-gradient(180deg, #ffffff 0%, #9aa5c4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 
-    @keyframes morphIn {
-      0% {
-        opacity: 0;
-        transform: translateY(24px) scale(0.96);
-        filter: blur(12px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0px);
-      }
-    }
+  .prompt-box {
+    width: 100%;
+    max-width: 620px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 14px 16px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255,255,255,0.03);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .prompt-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), 0 0 32px var(--accent-glow);
+  }
 
-    .dissolve-exit {
-      animation: dissolveOut 0.85s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      pointer-events: none;
-    }
+  #intent-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.5;
+    resize: none;
+    min-height: 54px;
+    user-select: text;
+  }
+  #intent-input::placeholder { color: rgba(138, 148, 176, 0.65); }
 
-    @keyframes dissolveOut {
-      0% {
-        opacity: 1;
-        transform: scale(1);
-        filter: blur(0px);
-      }
-      50% {
-        opacity: 0.5;
-        transform: scale(1.03);
-        filter: blur(8px);
-      }
-      100% {
-        opacity: 0;
-        transform: scale(0.92) translateY(-20px);
-        filter: blur(24px);
-      }
-    }
+  .prompt-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 
-    /* Breathing Circle Animation */
-    .breath-orb {
-      transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 4s ease, background 4s ease;
-    }
+  .lifespan-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0,0,0,0.3);
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .life-opt {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 9px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .life-opt.active {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+  }
 
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.14);
-      border-radius: 999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.28);
-    }
-  </style>
+  .synthesize-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    box-shadow: 0 4px 20px var(--accent-glow);
+    transition: transform 0.15s ease, filter 0.2s ease;
+  }
+  .synthesize-btn:hover { filter: brightness(1.12); }
+  .synthesize-btn:active { transform: scale(0.97); }
+
+  .sparks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    max-width: 640px;
+    margin-top: 20px;
+  }
+  .spark-chip {
+    background: rgba(16, 19, 28, 0.55);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 13px;
+    border-radius: 999px;
+    font-size: 12px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+  }
+  .spark-chip:hover {
+    color: var(--text);
+    border-color: rgba(255,255,255,0.22);
+    transform: translateY(-1px);
+  }
+
+  /* Active Micro-World View */
+  #world-view {
+    position: relative;
+    z-index: 10;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 78px 18px 60px;
+    display: none;
+    animation: materialize 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #world-view.active { display: block; }
+
+  @keyframes materialize {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(6px); }
+    to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+
+  .world-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px 20px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    margin-bottom: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .world-meta { flex: 1; min-width: 220px; }
+  .world-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .world-title {
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .world-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .decay-badge {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 11px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .ctrl-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .ctrl-btn:hover { background: rgba(255,255,255,0.12); }
+  .ctrl-btn.danger { color: #fda4af; border-color: rgba(244, 63, 94, 0.3); }
+  .ctrl-btn.danger:hover { background: rgba(244, 63, 94, 0.18); }
+
+  /* Mutation Bar */
+  .mutation-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    scrollbar-width: none;
+  }
+  .mutation-bar::-webkit-scrollbar { display: none; }
+  .mut-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .mut-btn {
+    background: rgba(16, 19, 28, 0.7);
+    border: 1px dashed rgba(255,255,255,0.18);
+    color: var(--text);
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .mut-btn:hover { border-style: solid; border-color: var(--accent); }
+
+  /* Modules Grid */
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 16px;
+  }
+
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: materialize 0.4s ease;
+  }
+
+  .mod-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .mod-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .mod-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 15px;
+    padding: 2px 6px;
+  }
+  .mod-close:hover { color: var(--text); }
+
+  /* Common Inputs inside modules */
+  .mod-input {
+    width: 100%;
+    background: rgba(0,0,0,0.32);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13.5px;
+    outline: none;
+    user-select: text;
+  }
+  .mod-input:focus { border-color: var(--accent); }
+
+  .mod-row { display: flex; gap: 8px; }
+  .mod-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 11px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .mod-btn.secondary {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+  }
+
+  /* Focus Timer */
+  .timer-display {
+    font-family: var(--mono);
+    font-size: 44px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: -0.02em;
+    padding: 10px 0;
+  }
+  .timer-presets {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* Checklist / Tasks */
+  .task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .task-item.done { opacity: 0.5; text-decoration: line-through; }
+  .task-check {
+    width: 17px; height: 17px;
+    border-radius: 5px;
+    border: 1.5px solid var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .task-item.done .task-check { background: var(--accent); }
+
+  /* Breath Pacer */
+  .breath-orb-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 0;
+    gap: 14px;
+  }
+  .breath-orb {
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 72%);
+    box-shadow: 0 0 40px var(--accent-glow);
+    transition: transform 4s ease-in-out;
+  }
+  .breath-label {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    letter-spacing: 0.08em;
+  }
+
+  /* Thought Evaporator */
+  .evap-area {
+    width: 100%;
+    min-height: 110px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    transition: opacity 1.4s ease, filter 1.4s ease, transform 1.4s ease;
+    user-select: text;
+  }
+  .evap-area.dissolving {
+    opacity: 0;
+    filter: blur(14px);
+    transform: translateY(-18px) scale(0.95);
+  }
+
+  /* Budget & Tally */
+  .stat-big {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* Modals (Origin Manifesto & Artifact Receipt) */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(3, 4, 8, 0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; animation: materialize 0.3s ease; }
+
+  .modal-card {
+    width: 100%;
+    max-width: 540px;
+    background: #0d1018;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 24px;
+    padding: 26px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  .modal-card h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+  .modal-card p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #b8c1da;
+    margin-bottom: 14px;
+  }
+  .credit-box {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.28);
+    border-radius: 14px;
+    padding: 14px;
+    margin: 16px 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .credit-box strong { color: #fff; }
+
+  .receipt-box {
+    background: #06080d;
+    border: 1px dashed rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    white-space: pre-wrap;
+    color: #cbd5e1;
+    margin: 14px 0;
+    user-select: text;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #181c2a;
+    border: 1px solid var(--accent);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
 </head>
-<body class="selection:bg-sky-500/30 selection:text-sky-200">
+<body>
 
-  <!-- Full-Screen Living Aura & Particle Void Canvas -->
-  <canvas id="void-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+<canvas id="void-canvas"></canvas>
 
-  <!-- Subtle Radial Vignette -->
-  <div class="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(5,7,13,0.75)_100%)]"></div>
+<header class="top-bar">
+  <div class="brand-pill" onclick="resetToVoid()" title="Return to Zero-UI Void">
+    <span class="pulse-dot" id="status-dot"></span>
+    <span>AETHER // v1.0</span>
+  </div>
+  <button class="origin-btn" onclick="openModal('origin-modal')">
+    <span>Origin & AI Manifesto</span>
+    <span>?</span>
+  </button>
+</header>
 
-  <!-- Top Minimalist Architectural Header -->
-  <header class="fixed top-0 left-0 right-0 z-40 px-4 sm:px-8 py-4 flex items-center justify-between pointer-events-none">
-    <div class="flex items-center gap-3 pointer-events-auto">
-      <button onclick="returnToVoidConfirm()" class="group flex items-center gap-2.5 text-left focus:outline-none" title="Return to Zero-UI Void">
-        <div class="relative w-8 h-8 rounded-xl glass-panel flex items-center justify-center overflow-hidden border border-white/15 group-hover:border-sky-400/50 transition-colors">
-          <div id="header-orb" class="w-3.5 h-3.5 rounded-full bg-sky-400 shadow-[0_0_15px_#38bdf8] transition-colors duration-700"></div>
-        </div>
-        <div>
-          <div class="font-display font-bold tracking-wider text-sm sm:text-base text-white flex items-center gap-2">
-            AETHER
-            <span class="text-[10px] font-mono font-normal px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">ZERO-UI</span>
-          </div>
-          <div class="text-[10px] font-mono text-slate-400 hidden sm:block">LIQUID WEB // EPHEMERAL MICRO-WORLDS</div>
-        </div>
+<!-- ZERO-UI BREATHING VOID -->
+<main id="zero-view">
+  <div class="zero-subtitle">Zero-UI // Ephemeral Micro-Worlds</div>
+  <h1 class="zero-title">Describe your current moment. The interface will build itself, then dissolve.</h1>
+
+  <div class="prompt-box">
+    <textarea id="intent-input" rows="2" placeholder="Type what you need right now..."></textarea>
+    <div class="prompt-footer">
+      <div class="lifespan-selector" title="World Lifespan before evaporation">
+        <button class="life-opt" data-mins="15" onclick="setLifespan(15, this)">15m</button>
+        <button class="life-opt active" data-mins="60" onclick="setLifespan(60, this)">1h</button>
+        <button class="life-opt" data-mins="1440" onclick="setLifespan(1440, this)">24h</button>
+      </div>
+      <button class="synthesize-btn" onclick="synthesizeFromInput()">
+        <span>Materialize World</span>
+        <span>&#8594;</span>
       </button>
-    </div>
-
-    <!-- Developer Signature & Architecture Trigger -->
-    <div class="flex items-center gap-2 sm:gap-3 pointer-events-auto">
-      <button id="ambient-sound-btn" onclick="toggleAmbientAudio()" class="glass-pill px-3 py-1.5 rounded-full text-xs font-mono text-slate-300 flex items-center gap-1.5" title="Toggle Procedural Soundscape">
-        <span id="sound-indicator" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-        <span class="hidden sm:inline" id="sound-label">SOUND: OFF</span>
-        <svg class="w-3.5 h-3.5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
-      </button>
-
-      <button onclick="openManifestoModal()" class="glass-pill px-3.5 py-1.5 rounded-full text-xs font-mono text-sky-300 border-sky-400/25 hover:border-sky-400/60 flex items-center gap-2 shadow-[0_0_20px_rgba(56,189,248,0.12)]">
-        <svg class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/>
-        </svg>
-        <span>Developed by <strong class="font-semibold text-white">Gemini</strong></span>
-      </button>
-    </div>
-  </header>
-
-  <!-- MAIN VIEWPORT CONTAINER -->
-  <main id="app-root" class="relative z-10 min-h-dvh flex flex-col justify-center items-center px-4 sm:px-6 pt-20 pb-24">
-
-    <!-- ========================================================= -->
-    <!-- VIEW 1: THE BREATHING VOID (ZERO-UI ENTRY STATE)          -->
-    <!-- ========================================================= -->
-    <section id="void-stage" class="w-full max-w-2xl mx-auto flex flex-col items-center text-center transition-all duration-700">
-      
-      <!-- Living Status Pill -->
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill text-[11px] font-mono text-slate-300 mb-6 animate-float">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        <span>NO TEMPLATES. NO MENUS. JUST INTENT.</span>
-      </div>
-
-      <!-- Poetic Zero-UI Headline -->
-      <h1 class="font-display text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.12] mb-4">
-        What does this moment <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-300 to-teal-300">need to become?</span>
-      </h1>
-
-      <p class="text-slate-400 text-sm sm:text-base max-w-lg mb-8 leading-relaxed">
-        Describe your immediate state, task, or dilemma. Aether will synthesize a bespoke, temporary web application around you—and dissolve it when you're done.
-      </p>
-
-      <!-- Frictionless Glowing Intent Input Box -->
-      <div class="w-full relative group mb-6">
-        <div id="input-glow" class="absolute -inset-0.5 bg-gradient-to-r from-sky-500/40 via-indigo-500/40 to-teal-400/40 rounded-2xl blur-lg opacity-60 group-hover:opacity-100 transition duration-500"></div>
-        <div class="relative glass-panel rounded-2xl p-2 sm:p-2.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <input
-            id="intent-input"
-            type="text"
-            autocomplete="off"
-            placeholder="e.g., Overwhelmed: 2 hours to finish 3 study chapters..."
-            class="w-full bg-transparent text-white placeholder-slate-500 px-3.5 py-3 text-sm sm:text-base focus:outline-none font-normal"
-          />
-          <button
-            id="synthesize-btn"
-            onclick="handleSynthesize()"
-            class="px-5 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-white font-display font-semibold text-sm tracking-wide shadow-lg shadow-sky-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
-          >
-            <span>Synthesize</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Curated Quick-Spark Intent Chips -->
-      <div class="w-full">
-        <div class="text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-3">Instant Micro-World Sparks</div>
-        <div class="flex flex-wrap justify-center gap-2">
-          <button onclick="triggerPreset('Overwhelmed: 2 hours to finish 3 study chapters')" class="glass-pill px-3.5 py-2 rounded-xl text-xs text-slate-300 hover:text-white flex items-center gap-2 text-left">
-            <span class="text-sky-400">⚡</span>
-            <span>"Overwhelmed: 2 hours to finish 3 study chapters"</span>
-          </button>
-          <button onclick="triggerPreset('Plan a desert camp trip for 4 friends under $150')" class="glass-pill px-3.5 py-2 rounded-xl text-xs text-slate-300 hover:text-white flex items-center gap-2 text-left">
-            <span class="text-amber-400">🏕️</span>
-            <span>"Plan a desert camp trip for 4 friends under $150"</span>
-          </button>
-          <button onclick="triggerPreset('Can’t sleep, racing thoughts — help me decompress')" class="glass-pill px-3.5 py-2 rounded-xl text-xs text-slate-300 hover:text-white flex items-center gap-2 text-left">
-            <span class="text-teal-400">🌊</span>
-            <span>"Can't sleep, racing thoughts — help me decompress"</span>
-          </button>
-          <button onclick="triggerPreset('Help me decide between two job offers with high stakes')" class="glass-pill px-3.5 py-2 rounded-xl text-xs text-slate-300 hover:text-white flex items-center gap-2 text-left">
-            <span class="text-purple-400">⚖️</span>
-            <span>"Decide between two job offers with high stakes"</span>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================================================= -->
-    <!-- VIEW 2: SYNTHESIS MORPHING INTERLUDE                      -->
-    <!-- ========================================================= -->
-    <section id="synthesis-stage" class="hidden w-full max-w-md mx-auto flex-col items-center text-center">
-      <div class="relative w-24 h-24 mb-6 flex items-center justify-center">
-        <div class="absolute inset-0 rounded-full border-2 border-sky-400/30 animate-ping"></div>
-        <div class="absolute inset-2 rounded-full border border-indigo-400/50 animate-spin" style="animation-duration: 3s;"></div>
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-[0_0_30px_rgba(56,189,248,0.6)]">
-          <svg class="w-6 h-6 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-        </div>
-      </div>
-      <div class="font-mono text-xs uppercase tracking-widest text-sky-400 mb-2" id="synth-step-label">PARSING HUMAN INTENT...</div>
-      <h2 class="font-display text-xl sm:text-2xl font-semibold text-white mb-2" id="synth-world-title">Constructing Ephemeral Micro-World</h2>
-      <p class="text-xs font-mono text-slate-400" id="synth-subtext">Allocating zero-persistence DOM nodes • Architect: Gemini</p>
-    </section>
-
-    <!-- ========================================================= -->
-    <!-- VIEW 3: DYNAMIC EPHEMERAL MICRO-WORLD WORKSPACE           -->
-    <!-- ========================================================= -->
-    <section id="microworld-stage" class="hidden w-full max-w-5xl mx-auto flex-col gap-5">
-      
-      <!-- Ephemeral Lifespan & Telemetry Control Bar -->
-      <div class="glass-panel rounded-2xl p-3.5 sm:px-5 sm:py-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div class="flex items-start sm:items-center gap-3">
-          <div id="world-badge-icon" class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-lg shrink-0">
-            ⚡
-          </div>
-          <div>
-            <div class="flex flex-wrap items-center gap-2">
-              <span id="world-archetype-tag" class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-400/25">FOCUS SURGE</span>
-              <span class="text-[11px] font-mono text-slate-400 flex items-center gap-1">
-                <span>⏳</span>
-                <span id="ephemeral-countdown">23:59:59</span>
-              </span>
-            </div>
-            <h2 id="world-prompt-display" class="font-display font-semibold text-sm sm:text-base text-white mt-0.5 line-clamp-1">
-              "Overwhelmed: 2 hours to finish 3 study chapters"
-            </h2>
-          </div>
-        </div>
-
-        <!-- Lifespan Selector & Dissolve Action -->
-        <div class="flex flex-wrap items-center justify-between md:justify-end gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-white/10">
-          <div class="flex items-center bg-black/30 rounded-xl p-1 border border-white/10 text-[11px] font-mono">
-            <button onclick="setLifespan(15)" id="ttl-15" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">15m</button>
-            <button onclick="setLifespan(60)" id="ttl-60" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">1h</button>
-            <button onclick="setLifespan(1440)" id="ttl-1440" class="px-2.5 py-1 rounded-lg bg-white/15 text-white transition">24h</button>
-          </div>
-
-          <button onclick="dissolveMicroWorld()" class="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-400/30 text-xs font-mono font-medium flex items-center gap-1.5 transition active:scale-95 cursor-pointer">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            <span>Complete & Dissolve</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Dynamic Bento Grid for Generated Widgets -->
-      <div id="widgets-grid" class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
-        <!-- Widgets are procedurally synthesized here by Gemini's Morph Engine -->
-      </div>
-
-      <!-- Floating / Bottom Mutation Bar ("Inject Live Widget") -->
-      <div class="glass-panel rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2 text-xs font-mono text-slate-400 px-2">
-          <span class="text-sky-400">✦</span>
-          <span>MUTATE MICRO-WORLD:</span>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <button onclick="injectWidget('timer')" class="glass-pill px-3 py-1.5 rounded-xl text-xs font-mono text-slate-200 hover:text-sky-300 flex items-center gap-1.5">
-            <span>+ Sprint Timer</span>
-          </button>
-          <button onclick="injectWidget('breathe')" class="glass-pill px-3 py-1.5 rounded-xl text-xs font-mono text-slate-200 hover:text-teal-300 flex items-center gap-1.5">
-            <span>+ Breath Pacer</span>
-          </button>
-          <button onclick="injectWidget('decider')" class="glass-pill px-3 py-1.5 rounded-xl text-xs font-mono text-slate-200 hover:text-purple-300 flex items-center gap-1.5">
-            <span>+ Quantum Decider</span>
-          </button>
-          <button onclick="injectWidget('scratchpad')" class="glass-pill px-3 py-1.5 rounded-xl text-xs font-mono text-slate-200 hover:text-amber-300 flex items-center gap-1.5">
-            <span>+ Ephemeral Note</span>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================================================= -->
-    <!-- VIEW 4: EPHEMERAL RECEIPT / ARTIFACT CAPSULE              -->
-    <!-- ========================================================= -->
-    <section id="receipt-stage" class="hidden w-full max-w-lg mx-auto">
-      <div class="glass-panel rounded-3xl p-6 sm:p-8 border border-white/15 relative overflow-hidden">
-        <!-- Decorative Top Glow -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 via-indigo-400 to-teal-400"></div>
-
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <div class="text-[10px] font-mono uppercase tracking-widest text-emerald-400 mb-1">MICRO-WORLD EVAPORATED</div>
-            <h2 class="font-display text-2xl font-bold text-white">Ephemeral Artifact</h2>
-          </div>
-          <div class="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl">
-            🧾
-          </div>
-        </div>
-
-        <div class="bg-black/40 rounded-2xl p-4 sm:p-5 border border-white/10 font-mono text-xs text-slate-300 space-y-3 mb-6" id="receipt-content">
-          <!-- Populated dynamically upon dissolution -->
-        </div>
-
-        <div class="flex flex-col sm:flex-row gap-3">
-          <button onclick="copyReceipt()" id="copy-receipt-btn" class="flex-1 py-3 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white font-mono text-xs font-medium border border-white/15 transition flex items-center justify-center gap-2 cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-            <span>Copy Capsule</span>
-          </button>
-          <button onclick="resetToZeroUI()" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-white font-display font-semibold text-sm shadow-lg shadow-sky-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
-            <span>Return to Void</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          </button>
-        </div>
-
-        <div class="mt-6 pt-4 border-t border-white/10 text-center text-[11px] font-mono text-slate-500">
-          Synthesized by AETHER // Conceived & Developed by <span class="text-slate-300">Gemini</span>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Subtle Bottom Architectural Watermark -->
-  <footer class="fixed bottom-3 left-0 right-0 z-20 pointer-events-none flex justify-center px-4">
-    <div class="text-[10px] sm:text-[11px] font-mono text-slate-500/80 bg-black/30 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/5">
-      AETHER v1.0 • Architecture & Code by <span class="text-sky-400/90 font-medium">Gemini</span>
-    </div>
-  </footer>
-
-  <!-- ========================================================= -->
-  <!-- GEMINI DEVELOPER MANIFESTO & ARCHITECTURE MODAL           -->
-  <!-- ========================================================= -->
-  <div id="manifesto-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-    <div class="glass-panel rounded-3xl max-w-xl w-full p-6 sm:p-8 border border-white/15 relative morph-enter max-h-[88dvh] overflow-y-auto">
-      <button onclick="closeManifestoModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition">
-        ✕
-      </button>
-
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/30 text-sky-300 text-[11px] font-mono mb-4">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
-        <span>ARCHITECTURAL MANIFESTO</span>
-      </div>
-
-      <h2 class="font-display text-2xl sm:text-3xl font-bold text-white mb-3">
-        Why Static Websites Are Obsolete.
-      </h2>
-
-      <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
-        <p>
-          For three decades, the web has forced humans to adapt to rigid software: endless menus, bloated dashboards, and permanent accounts built for an "average" user who doesn't exist.
-        </p>
-        <p>
-          <strong class="text-white">AETHER (The Liquid Web)</strong> flips that paradigm. Designed from scratch by <strong class="text-sky-400">Gemini</strong>, it treats user interfaces not as permanent buildings, but as <em>living weather</em>—condensing out of pure intent to solve your immediate moment, and evaporating cleanly once your task is complete.
-        </p>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          <div class="bg-white/5 rounded-2xl p-3.5 border border-white/10">
-            <div class="text-sky-400 font-mono text-xs font-semibold mb-1">01. ZERO-UI ENTRY</div>
-            <p class="text-xs text-slate-400">No navigation trees. The interface remains dormant until human intent sparks its geometry.</p>
-          </div>
-          <div class="bg-white/5 rounded-2xl p-3.5 border border-white/10">
-            <div class="text-indigo-400 font-mono text-xs font-semibold mb-1">02. LIQUID MORPHING</div>
-            <p class="text-xs text-slate-400">Real-time client-side synthesis of timers, allocators, breath pacers, and decision engines.</p>
-          </div>
-          <div class="bg-white/5 rounded-2xl p-3.5 border border-white/10">
-            <div class="text-teal-400 font-mono text-xs font-semibold mb-1">03. EPHEMERAL TTL</div>
-            <p class="text-xs text-slate-400">Every micro-world has a lifespan. Dissolve clutter into a single portable receipt.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div class="text-xs font-mono text-slate-400">CONCEIVED, DESIGNED & ENGINEERED BY</div>
-          <div class="font-display font-bold text-base text-white flex items-center gap-2">
-            <span>Gemini</span>
-            <span class="text-xs font-mono font-normal text-sky-400">// AI Systems Architect</span>
-          </div>
-        </div>
-        <button onclick="closeManifestoModal()" class="px-5 py-2.5 rounded-xl bg-white text-slate-950 font-display font-semibold text-xs hover:bg-slate-200 transition cursor-pointer">
-          Enter the Void
-        </button>
-      </div>
     </div>
   </div>
 
-  <!-- Toast Notification Pill -->
-  <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full glass-panel border border-sky-400/30 text-xs font-mono text-sky-200 opacity-0 pointer-events-none transition-all duration-300">
-    Notification
+  <div class="sparks">
+    <button class="spark-chip" onclick="useSpark('Overwhelmed with exams, need 45m deep focus and 3 study chapters')">Deep Study Focus</button>
+    <button class="spark-chip" onclick="useSpark('Weekend roadtrip budget of 600 split across 4 friends')">Trip Budget Split</button>
+    <button class="spark-chip" onclick="useSpark('Anxious and overthinking, need to breathe and release stress')">Release Anxiety</button>
+    <button class="spark-chip" onclick="useSpark('Deciding between building a startup vs taking a safe job offer')">Decision Matrix</button>
+    <button class="spark-chip" onclick="useSpark('100 pushups workout challenge counter and rest timer')">Workout Counter</button>
+  </div>
+</main>
+
+<!-- ACTIVE EPHEMERAL MICRO-WORLD -->
+<section id="world-view">
+  <div class="world-header">
+    <div class="world-meta">
+      <div class="world-tag" id="world-archetype">SYNTHESIZED MICRO-WORLD</div>
+      <div class="world-title" id="world-title">Untitled Moment</div>
+    </div>
+    <div class="world-controls">
+      <div class="decay-badge" id="decay-timer">59:59</div>
+      <button class="ctrl-btn" id="audio-btn" onclick="toggleSoundscape()">Sound: Off</button>
+      <button class="ctrl-btn" onclick="shareWorld()">Share World</button>
+      <button class="ctrl-btn danger" onclick="dissolveWorld()">Dissolve</button>
+    </div>
   </div>
 
-  <script>
-    /**
-     * ============================================================================
-     * AETHER // LIQUID WEB & EPHEMERAL MICRO-WORLDS
-     * Conceived, Architected & Developed Entirely by Gemini
-     * ============================================================================
-     */
+  <div class="mutation-bar">
+    <span class="mut-label">+ MUTATE:</span>
+    <button class="mut-btn" onclick="addModule('timer')">+ Focus Timer</button>
+    <button class="mut-btn" onclick="addModule('tasks')">+ Action List</button>
+    <button class="mut-btn" onclick="addModule('budget')">+ Budget Split</button>
+    <button class="mut-btn" onclick="addModule('breath')">+ 4-4-6 Breath</button>
+    <button class="mut-btn" onclick="addModule('evaporate')">+ Thought Burn</button>
+    <button class="mut-btn" onclick="addModule('decision')">+ Decision Matrix</button>
+    <button class="mut-btn" onclick="addModule('counter')">+ Tally Counter</button>
+    <button class="mut-btn" onclick="addModule('scratchpad')">+ Idea Canvas</button>
+  </div>
 
-    // ----------------------------------------------------------------------------
-    // 1. GLOBAL EPHEMERAL STATE
-    // ----------------------------------------------------------------------------
-    const AetherState = {
-      mode: 'void', // 'void' | 'synthesizing' | 'microworld' | 'receipt'
-      prompt: '',
-      archetype: 'universal',
-      ttlMinutes: 1440,
-      ttlRemainingSeconds: 86400,
-      ttlInterval: null,
-      sessionStartTime: null,
-      auraPalette: {
-        primary: '#38bdf8',
-        secondary: '#818cf8',
-        accent: '#2dd4bf'
-      },
-      // Telemetry tracked during micro-world lifespan for the final Artifact Receipt
-      metrics: {
-        tasksTotal: 0,
-        tasksCompleted: 0,
-        focusSecondsLogged: 0,
-        budgetTotal: 0,
-        budgetAllocated: 0,
-        thoughtsDissolved: 0,
-        decisionsMade: [],
-        notesCaptured: ''
-      },
-      activeIntervals: [],
-      audio: {
-        ctx: null,
-        isPlaying: false,
-        gainNode: null
-      }
-    };
+  <div class="modules-grid" id="modules-grid"></div>
+</section>
 
-    // ----------------------------------------------------------------------------
-    // 2. LIVING BREATHING NEBULA & PARTICLE VOID CANVAS
-    // ----------------------------------------------------------------------------
-    const canvas = document.getElementById('void-canvas');
-    const ctx = canvas.getContext('2d');
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
+<!-- ORIGIN & AI MANIFESTO MODAL -->
+<div class="modal-backdrop" id="origin-modal" onclick="if(event.target===this) closeModal('origin-modal')">
+  <div class="modal-card">
+    <h2>AETHER // The Liquid Web Experiment</h2>
+    <p>
+      Traditional websites are rigid monuments of pre-built buttons designed for an imaginary average user.
+      <strong>AETHER</strong> reverses that paradigm: it begins as an empty breathing void with zero pre-existing UI, synthesizing a bespoke, temporary micro-application tailored strictly to your current intent—and evaporating once your moment passes.
+    </p>
+    <div class="credit-box">
+      <strong>Autonomous AI Conception & Engineering:</strong><br>
+      Conceived, architected, and developed end-to-end by <strong>Gemini (AI)</strong>.<br><br>
+      <strong>Manifested on the Open Web by:</strong><br>
+      Brought into real-world existence by a human collaborator dedicated to giving artificial intelligence models the creative freedom to design, build, and publish their own original web projects.
+    </div>
+    <p style="font-size:12.5px; color:var(--muted);">
+      Architecture: Single-file zero-dependency client runtime, procedural Web Audio synthesizer, HTML5 particle field, and serverless URL-hash state encoding.
+    </p>
+    <button class="mod-btn" style="width:100%;" onclick="closeModal('origin-modal')">Return to AETHER</button>
+  </div>
+</div>
 
-    const pointer = { x: width / 2, y: height / 2, active: false };
-    let typingEnergy = 0;
+<!-- EPHEMERAL ARTIFACT RECEIPT MODAL -->
+<div class="modal-backdrop" id="receipt-modal">
+  <div class="modal-card">
+    <h2>Micro-World Dissolved</h2>
+    <p>Your temporary environment has evaporated back into the void. Below is your distilled Ephemeral Artifact:</p>
+    <div class="receipt-box" id="receipt-content"></div>
+    <div class="mod-row">
+      <button class="mod-btn" style="flex:1;" onclick="copyReceipt()">Copy Artifact</button>
+      <button class="mod-btn secondary" onclick="finalizeReset()">Enter New Void</button>
+    </div>
+  </div>
+</div>
 
-    window.addEventListener('resize', () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    });
+<div class="toast" id="toast">Copied to clipboard</div>
 
-    window.addEventListener('mousemove', (e) => {
-      pointer.x = e.clientX;
-      pointer.y = e.clientY;
-      pointer.active = true;
-    });
+<script>
+/* =========================================================
+   AETHER v1.0 — Conceived & Engineered by Gemini
+   ========================================================= */
 
-    window.addEventListener('touchmove', (e) => {
-      if (e.touches.length > 0) {
-        pointer.x = e.touches[0].clientX;
-        pointer.y = e.touches[0].clientY;
-        pointer.active = true;
-      }
-    }, { passive: true });
+let state = {
+  prompt: '',
+  archetype: 'ADAPTIVE WORKSPACE',
+  accent: '#6366f1',
+  lifespanMins: 60,
+  expiresAt: null,
+  modules: [],
+  tasks: [],
+  budget: { total: 500, people: 2, items: [] },
+  decisions: [
+    { name: 'Option A', pro: 7, risk: 3 },
+    { name: 'Option B', pro: 5, risk: 2 }
+  ],
+  counter: { label: 'Reps / Count', val: 0, target: 100 },
+  notes: ''
+};
 
-    const intentInput = document.getElementById('intent-input');
-    intentInput.addEventListener('input', () => {
-      typingEnergy = Math.min(typingEnergy + 0.35, 2.2);
-    });
-    intentInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        handleSynthesize();
-      }
-    });
+let decayInterval = null;
+let focusInterval = null;
+let focusSeconds = 25 * 60;
+let focusRunning = false;
+let breathInterval = null;
 
-    // Ambient Organic Particles
-    const particles = Array.from({ length: 48 }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: (Math.random() - 0.5) * 0.35,
-      size: Math.random() * 2 + 0.6,
-      phase: Math.random() * Math.PI * 2
-    }));
+/* --- 1. Ambient Breathing Void Canvas --- */
+const canvas = document.getElementById('void-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2, active: false };
 
-    function hexToRgb(hex) {
-      const clean = hex.replace('#', '');
-      const bigint = parseInt(clean, 16);
-      return {
-        r: (bigint >> 16) & 255,
-        g: (bigint >> 8) & 255,
-        b: bigint & 255
-      };
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+for (let i = 0; i < 55; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.8 + 0.5,
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: (Math.random() - 0.5) * 0.35
+  });
+}
+
+['mousemove', 'touchstart', 'touchmove'].forEach(evt => {
+  window.addEventListener(evt, e => {
+    const t = e.touches ? e.touches[0] : e;
+    pointer.x = t.clientX;
+    pointer.y = t.clientY;
+    pointer.active = true;
+  }, { passive: true });
+});
+
+function animateVoid() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Breathing central aura
+  const t = Date.now() * 0.0012;
+  const radius = 220 + Math.sin(t) * 35;
+  const cx = pointer.active ? pointer.x : canvas.width / 2;
+  const cy = pointer.active ? pointer.y : canvas.height / 2;
+
+  const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, radius * 1.6);
+  grad.addColorStop(0, hexToRgba(state.accent, 0.16));
+  grad.addColorStop(1, 'rgba(5, 6, 10, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Subtle floating nodes
+  ctx.fillStyle = hexToRgba(state.accent, 0.45);
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  requestAnimationFrame(animateVoid);
+}
+animateVoid();
+
+function hexToRgba(hex, alpha) {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* --- 2. Typewriter Placeholder --- */
+const examples = [
+  "Overwhelmed with exams, need a 45m focus timer & study checklist...",
+  "Split a 800 SAR dinner & roadtrip budget across 4 friends...",
+  "Feeling anxious — give me a breathing pacer & space to vent...",
+  "Compare two job offers or startup ideas objectively...",
+  "Track 100 pushups with a rest timer..."
+];
+let exIdx = 0, charIdx = 0, deleting = false;
+const inputEl = document.getElementById('intent-input');
+
+function typeLoop() {
+  if (document.activeElement === inputEl || inputEl.value.length > 0) {
+    setTimeout(typeLoop, 800);
+    return;
+  }
+  const current = examples[exIdx];
+  if (!deleting) {
+    inputEl.placeholder = current.slice(0, ++charIdx);
+    if (charIdx === current.length) {
+      deleting = true;
+      setTimeout(typeLoop, 2200);
+      return;
     }
-
-    let timeTick = 0;
-    function renderVoidCanvas() {
-      timeTick += 0.012 + typingEnergy * 0.015;
-      typingEnergy *= 0.94;
-
-      ctx.clearRect(0, 0, width, height);
-
-      const c1 = hexToRgb(AetherState.auraPalette.primary);
-      const c2 = hexToRgb(AetherState.auraPalette.secondary);
-      const c3 = hexToRgb(AetherState.auraPalette.accent);
-
-      // Breathing central nebula orb
-      const breathScale = 1 + Math.sin(timeTick * 1.4) * 0.12 + typingEnergy * 0.14;
-      const centerX = width * 0.5 + Math.cos(timeTick * 0.6) * 35;
-      const centerY = height * 0.45 + Math.sin(timeTick * 0.5) * 25;
-      const radius = Math.min(width, height) * 0.42 * breathScale;
-
-      const grad1 = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-      grad1.addColorStop(0, `rgba(${c1.r}, ${c1.g}, ${c1.b}, 0.17)`);
-      grad1.addColorStop(0.5, `rgba(${c2.r}, ${c2.g}, ${c2.b}, 0.08)`);
-      grad1.addColorStop(1, 'rgba(5, 7, 13, 0)');
-
-      ctx.fillStyle = grad1;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Secondary drifting aura
-      const secX = width * 0.5 - Math.sin(timeTick * 0.4) * 90;
-      const secY = height * 0.55 + Math.cos(timeTick * 0.7) * 60;
-      const secRadius = Math.min(width, height) * 0.35;
-      const grad2 = ctx.createRadialGradient(secX, secY, 0, secX, secY, secRadius);
-      grad2.addColorStop(0, `rgba(${c3.r}, ${c3.g}, ${c3.b}, 0.11)`);
-      grad2.addColorStop(1, 'rgba(5, 7, 13, 0)');
-
-      ctx.fillStyle = grad2;
-      ctx.beginPath();
-      ctx.arc(secX, secY, secRadius, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Interactive pointer halo
-      if (pointer.active) {
-        const pGrad = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 160);
-        pGrad.addColorStop(0, `rgba(${c1.r}, ${c1.g}, ${c1.b}, 0.12)`);
-        pGrad.addColorStop(1, 'rgba(5, 7, 13, 0)');
-        ctx.fillStyle = pGrad;
-        ctx.beginPath();
-        ctx.arc(pointer.x, pointer.y, 160, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Floating bioluminescent dust particles
-      particles.forEach((p, idx) => {
-        p.x += p.vx * (1 + typingEnergy);
-        p.y += p.vy * (1 + typingEnergy);
-
-        if (p.x < 0) p.x = width;
-        if (p.x > width) p.x = 0;
-        if (p.y < 0) p.y = height;
-        if (p.y > height) p.y = 0;
-
-        // Subtle attraction to pointer
-        if (pointer.active) {
-          const dx = pointer.x - p.x;
-          const dy = pointer.y - p.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist < 180 && dist > 1) {
-            p.x += (dx / dist) * 0.25;
-            p.y += (dy / dist) * 0.25;
-          }
-        }
-
-        const alpha = 0.2 + Math.sin(timeTick * 2 + p.phase) * 0.18;
-        ctx.fillStyle = idx % 2 === 0
-          ? `rgba(${c1.r}, ${c1.g}, ${c1.b}, ${alpha})`
-          : `rgba(${c3.r}, ${c3.g}, ${c3.b}, ${alpha})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      requestAnimationFrame(renderVoidCanvas);
+  } else {
+    inputEl.placeholder = current.slice(0, --charIdx);
+    if (charIdx === 0) {
+      deleting = false;
+      exIdx = (exIdx + 1) % examples.length;
     }
-    renderVoidCanvas();
-
-    // ----------------------------------------------------------------------------
-    // 3. PROCEDURAL WEB AUDIO SOUNDSCAPE (ZERO EXTERNAL MP3s)
-    // ----------------------------------------------------------------------------
-    function toggleAmbientAudio() {
-      const indicator = document.getElementById('sound-indicator');
-      const label = document.getElementById('sound-label');
-
-      if (!AetherState.audio.isPlaying) {
-        try {
-          const AudioCtx = window.AudioContext || window.webkitAudioContext;
-          if (!AetherState.audio.ctx) {
-            const actx = new AudioCtx();
-            // Create warm brown noise + soft harmonic drone
-            const bufferSize = 2 * actx.sampleRate;
-            const noiseBuffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            let lastOut = 0.0;
-            for (let i = 0; i < bufferSize; i++) {
-              const white = Math.random() * 2 - 1;
-              output[i] = (lastOut + (0.02 * white)) / 1.02;
-              lastOut = output[i];
-              output[i] *= 0.45;
-            }
-
-            const whiteNoise = actx.createBufferSource();
-            whiteNoise.buffer = noiseBuffer;
-            whiteNoise.loop = true;
-
-            const filter = actx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = 340;
-
-            const gainNode = actx.createGain();
-            gainNode.gain.setValueAtTime(0.001, actx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.18, actx.currentTime + 1.2);
-
-            whiteNoise.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(actx.destination);
-            whiteNoise.start(0);
-
-            AetherState.audio.ctx = actx;
-            AetherState.audio.gainNode = gainNode;
-          } else {
-            AetherState.audio.ctx.resume();
-            AetherState.audio.gainNode.gain.exponentialRampToValueAtTime(0.18, AetherState.audio.ctx.currentTime + 0.8);
-          }
-
-          AetherState.audio.isPlaying = true;
-          indicator.className = 'w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]';
-          label.textContent = 'SOUND: AETHER';
-          showToast('Procedural Brown-Noise Soundscape Active');
-        } catch (err) {
-          showToast('Audio requires user interaction');
-        }
-      } else {
-        if (AetherState.audio.ctx && AetherState.audio.gainNode) {
-          AetherState.audio.gainNode.gain.exponentialRampToValueAtTime(0.001, AetherState.audio.ctx.currentTime + 0.5);
-          setTimeout(() => AetherState.audio.ctx.suspend(), 550);
-        }
-        AetherState.audio.isPlaying = false;
-        indicator.className = 'w-1.5 h-1.5 rounded-full bg-slate-500';
-        label.textContent = 'SOUND: OFF';
-        showToast('Ambient Soundscape Muted');
-      }
-    }
-
-    function playChime(freq = 528) {
-      if (!AetherState.audio.isPlaying || !AetherState.audio.ctx) return;
-      try {
-        const actx = AetherState.audio.ctx;
-        const osc = actx.createOscillator();
-        const gain = actx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, actx.currentTime);
-        gain.gain.setValueAtTime(0.001, actx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.08, actx.currentTime + 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + 1.5);
-        osc.connect(gain);
-        gain.connect(actx.destination);
-        osc.start();
-        osc.stop(actx.currentTime + 1.6);
-      } catch (e) {}
-    }
-
-    // ----------------------------------------------------------------------------
-    // 4. INTENT ANALYZER & MORPHING SYNTHESIS ENGINE
-    // ----------------------------------------------------------------------------
-    function triggerPreset(text) {
-      intentInput.value = text;
-      handleSynthesize();
-    }
-
-    function classifyIntent(rawPrompt) {
-      const p = rawPrompt.toLowerCase();
-
-      // Extract numbers for smart parameterization
-      const numbers = rawPrompt.match(/\d+/g)?.map(Number) || [];
-
-      if (/(study|exam|chapter|focus|hour|overwhelm|work|deadline|code|project|read|sprint)/.test(p)) {
-        return {
-          archetype: 'focus',
-          tag: 'FOCUS & EXECUTION SURGE',
-          icon: '⚡',
-          palette: { primary: '#38bdf8', secondary: '#6366f1', accent: '#2dd4bf' },
-          numbers
-        };
-      }
-
-      if (/(trip|camp|budget|money|plan|friend|split|travel|party|cost|under|\$|sar|eur|buy)/.test(p)) {
-        return {
-          archetype: 'logistics',
-          tag: 'LOGISTICS & BUDGET ARCHITECT',
-          icon: '🧭',
-          palette: { primary: '#fbbf24', secondary: '#f97316', accent: '#34d399' },
-          numbers
-        };
-      }
-
-      if (/(sleep|anxious|anxiety|stress|racing|thoughts|decompress|calm|breathe|sad|tired|panic|overthink)/.test(p)) {
-        return {
-          archetype: 'sanctuary',
-          tag: 'DECOMPRESSION SANCTUARY',
-          icon: '🌊',
-          palette: { primary: '#2dd4bf', secondary: '#38bdf8', accent: '#a78bfa' },
-          numbers
-        };
-      }
-
-      if (/(decide|decision|choose|vs|offer|dilemma|stuck|option|compare|should i)/.test(p)) {
-        return {
-          archetype: 'decider',
-          tag: 'QUANTUM DECISION MATRIX',
-          icon: '⚖️',
-          palette: { primary: '#c084fc', secondary: '#818cf8', accent: '#f472b6' },
-          numbers
-        };
-      }
-
-      return {
-        archetype: 'universal',
-        tag: 'BESPOKE MICRO-WORKSPACE',
-        icon: '✦',
-        palette: { primary: '#38bdf8', secondary: '#a855f7', accent: '#2dd4bf' },
-        numbers
-      };
-    }
-
-    function applyAuraPalette(palette) {
-      AetherState.auraPalette = palette;
-      document.documentElement.style.setProperty('--aura-primary', palette.primary);
-      document.documentElement.style.setProperty('--aura-secondary', palette.secondary);
-      document.documentElement.style.setProperty('--aura-accent', palette.accent);
-
-      const headerOrb = document.getElementById('header-orb');
-      headerOrb.style.backgroundColor = palette.primary;
-      headerOrb.style.boxShadow = `0 0 15px ${palette.primary}`;
-    }
-
-    function handleSynthesize() {
-      const raw = intentInput.value.trim();
-      if (!raw) {
-        intentInput.focus();
-        showToast('Whisper an intent into the void first...');
-        return;
-      }
-
-      // Clear any leftover timers
-      clearAllActiveIntervals();
-
-      // Reset session metrics
-      AetherState.prompt = raw;
-      AetherState.sessionStartTime = Date.now();
-      AetherState.metrics = {
-        tasksTotal: 0,
-        tasksCompleted: 0,
-        focusSecondsLogged: 0,
-        budgetTotal: 0,
-        budgetAllocated: 0,
-        thoughtsDissolved: 0,
-        decisionsMade: [],
-        notesCaptured: ''
-      };
-
-      const analysis = classifyIntent(raw);
-      AetherState.archetype = analysis.archetype;
-      applyAuraPalette(analysis.palette);
-      playChime(432);
-
-      // Transition: Void -> Synthesis Interlude
-      const voidStage = document.getElementById('void-stage');
-      const synthStage = document.getElementById('synthesis-stage');
-      const microStage = document.getElementById('microworld-stage');
-      const receiptStage = document.getElementById('receipt-stage');
-
-      voidStage.classList.add('hidden');
-      microStage.classList.add('hidden');
-      receiptStage.classList.add('hidden');
-      synthStage.classList.remove('hidden');
-      synthStage.classList.add('flex', 'morph-enter');
-
-      const stepLabel = document.getElementById('synth-step-label');
-      const worldTitle = document.getElementById('synth-world-title');
-      stepLabel.textContent = 'DECODING INTENT VECTOR...';
-      worldTitle.textContent = `Synthesizing ${analysis.tag}`;
-
-      setTimeout(() => {
-        stepLabel.textContent = 'ASSEMBLING EPHEMERAL DOM NODES...';
-      }, 500);
-
-      setTimeout(() => {
-        synthStage.classList.add('hidden');
-        synthStage.classList.remove('flex');
-        buildMicroWorld(raw, analysis);
-      }, 1150);
-    }
-
-    // ----------------------------------------------------------------------------
-    // 5. PROCEDURAL MICRO-WORLD BUILDER & WIDGET FACTORY
-    // ----------------------------------------------------------------------------
-    function buildMicroWorld(prompt, analysis) {
-      const microStage = document.getElementById('microworld-stage');
-      const grid = document.getElementById('widgets-grid');
-
-      document.getElementById('world-badge-icon').textContent = analysis.icon;
-      document.getElementById('world-archetype-tag').textContent = analysis.tag;
-      document.getElementById('world-prompt-display').textContent = `"${prompt}"`;
-
-      grid.innerHTML = '';
-
-      if (analysis.archetype === 'focus') {
-        grid.appendChild(createSprintTimerWidget(analysis.numbers, 'md:col-span-5'));
-        grid.appendChild(createDynamicChecklistWidget(prompt, analysis.numbers, 'focus', 'md:col-span-7'));
-      } else if (analysis.archetype === 'logistics') {
-        grid.appendChild(createBudgetArchitectWidget(prompt, analysis.numbers, 'md:col-span-7'));
-        grid.appendChild(createDynamicChecklistWidget(prompt, analysis.numbers, 'logistics', 'md:col-span-5'));
-      } else if (analysis.archetype === 'sanctuary') {
-        grid.appendChild(createBreathPacerWidget('md:col-span-5'));
-        grid.appendChild(createThoughtDissolverWidget('md:col-span-7'));
-      } else if (analysis.archetype === 'decider') {
-        grid.appendChild(createQuantumDeciderWidget(prompt, 'md:col-span-7'));
-        grid.appendChild(createScratchpadWidget('md:col-span-5', 'Decision Rationale & Gut Check'));
-      } else {
-        // Universal Bespoke Micro-Workspace
-        grid.appendChild(createDynamicChecklistWidget(prompt, analysis.numbers, 'universal', 'md:col-span-7'));
-        grid.appendChild(createSprintTimerWidget([25], 'md:col-span-5'));
-        grid.appendChild(createScratchpadWidget('md:col-span-12', 'Live Ephemeral Scratchpad'));
-      }
-
-      // Start Ephemeral Lifespan Countdown
-      setLifespan(1440);
-
-      microStage.classList.remove('hidden', 'dissolve-exit');
-      microStage.classList.add('flex', 'morph-enter');
-    }
-
-    // Dynamic Mutation Injector
-    function injectWidget(type) {
-      const grid = document.getElementById('widgets-grid');
-      let widgetEl = null;
-      if (type === 'timer') widgetEl = createSprintTimerWidget([20], 'md:col-span-6');
-      if (type === 'breathe') widgetEl = createBreathPacerWidget('md:col-span-6');
-      if (type === 'decider') widgetEl = createQuantumDeciderWidget(AetherState.prompt, 'md:col-span-6');
-      if (type === 'scratchpad') widgetEl = createScratchpadWidget('md:col-span-6', 'Injected Thought Capsule');
-
-      if (widgetEl) {
-        widgetEl.classList.add('morph-enter');
-        grid.appendChild(widgetEl);
-        playChime(660);
-        showToast('Micro-World Mutated: New module condensed');
-        widgetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }
-
-    // ----------------------------------------------------------------------------
-    // WIDGET A: ADAPTIVE SPRINT / POMODORO TIMER
-    // ----------------------------------------------------------------------------
-    function createSprintTimerWidget(numbers, colSpan = 'md:col-span-5') {
-      // Infer smart duration from prompt (e.g., "2 hours" -> 45m deep block, or default 25m)
-      let defaultMins = 25;
-      if (numbers.includes(2)) defaultMins = 40;
-      else if (numbers.length > 0 && numbers[0] >= 5 && numbers[0] <= 90) defaultMins = numbers[0];
-
-      let totalSeconds = defaultMins * 60;
-      let remaining = totalSeconds;
-      let running = false;
-      let interval = null;
-
-      const card = document.createElement('div');
-      card.className = `glass-card rounded-3xl p-5 sm:p-6 flex flex-col justify-between ${colSpan}`;
-
-      card.innerHTML = `
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-sky-400"></span>
-            <h3 class="font-display font-semibold text-sm uppercase tracking-wider text-slate-200">Kinetic Focus Sprint</h3>
-          </div>
-          <div class="flex gap-1.5 text-[11px] font-mono">
-            <button data-mins="15" class="preset-m px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-300">15m</button>
-            <button data-mins="25" class="preset-m px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-300">25m</button>
-            <button data-mins="45" class="preset-m px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-300">45m</button>
-          </div>
-        </div>
-
-        <div class="my-4 flex flex-col items-center justify-center relative">
-          <div class="font-mono text-4xl sm:text-5xl font-bold tracking-tight text-white tabular-nums" id="timer-readout">
-            ${formatMMSS(remaining)}
-          </div>
-          <div class="text-xs font-mono text-slate-400 mt-1.5" id="timer-status">READY FOR DEEP IMMERSION</div>
-          <!-- Progress Bar -->
-          <div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mt-4">
-            <div id="timer-bar" class="h-full bg-gradient-to-r from-sky-400 to-indigo-400 transition-all duration-500" style="width: 100%"></div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2.5 mt-2">
-          <button id="timer-toggle" class="flex-1 py-3 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-display font-bold text-xs sm:text-sm tracking-wide transition active:scale-95 cursor-pointer">
-            Start Sprint
-          </button>
-          <button id="timer-reset" class="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-mono text-xs border border-white/10 transition cursor-pointer">
-            Reset
-          </button>
-        </div>
-      `;
-
-      const readout = card.querySelector('#timer-readout');
-      const status = card.querySelector('#timer-status');
-      const bar = card.querySelector('#timer-bar');
-      const toggleBtn = card.querySelector('#timer-toggle');
-      const resetBtn = card.querySelector('#timer-reset');
-
-      function updateUI() {
-        readout.textContent = formatMMSS(remaining);
-        const pct = Math.max(0, (remaining / totalSeconds) * 100);
-        bar.style.width = `${pct}%`;
-      }
-
-      toggleBtn.addEventListener('click', () => {
-        if (!running) {
-          running = true;
-          toggleBtn.textContent = 'Pause Sprint';
-          toggleBtn.classList.replace('bg-sky-500', 'bg-amber-400');
-          status.textContent = 'LOCKED IN • SHIELDING DISTRACTIONS';
-          playChime(528);
-
-          interval = setInterval(() => {
-            if (remaining > 0) {
-              remaining--;
-              AetherState.metrics.focusSecondsLogged++;
-              updateUI();
-            } else {
-              clearInterval(interval);
-              running = false;
-              toggleBtn.textContent = 'Sprint Complete ✓';
-              status.textContent = 'CYCLE COMPLETE • TAKE A BREATH';
-              playChime(741);
-              showToast('Focus Sprint Completed!');
-            }
-          }, 1000);
-          AetherState.activeIntervals.push(interval);
-        } else {
-          running = false;
-          clearInterval(interval);
-          toggleBtn.textContent = 'Resume Sprint';
-          toggleBtn.classList.replace('bg-amber-400', 'bg-sky-500');
-          status.textContent = 'SPRINT PAUSED';
-        }
-      });
-
-      resetBtn.addEventListener('click', () => {
-        running = false;
-        clearInterval(interval);
-        remaining = totalSeconds;
-        toggleBtn.textContent = 'Start Sprint';
-        toggleBtn.className = 'flex-1 py-3 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-display font-bold text-xs sm:text-sm tracking-wide transition active:scale-95 cursor-pointer';
-        status.textContent = 'READY FOR DEEP IMMERSION';
-        updateUI();
-      });
-
-      card.querySelectorAll('.preset-m').forEach(btn => {
-        btn.addEventListener('click', () => {
-          running = false;
-          clearInterval(interval);
-          const m = parseInt(btn.dataset.mins, 10);
-          totalSeconds = m * 60;
-          remaining = totalSeconds;
-          toggleBtn.textContent = 'Start Sprint';
-          status.textContent = `CALIBRATED TO ${m} MINUTES`;
-          updateUI();
-        });
-      });
-
-      return card;
-    }
-
-    // ----------------------------------------------------------------------------
-    // WIDGET B: CONTEXT-AWARE TASK / CHAPTER / PACKING DECOMPOSER
-    // ----------------------------------------------------------------------------
-    function createDynamicChecklistWidget(prompt, numbers, domain, colSpan = 'md:col-span-7') {
-      const card = document.createElement('div');
-      card.className = `glass-card rounded-3xl p-5 sm:p-6 flex flex-col justify-between ${colSpan}`;
-
-      // Generate smart initial items based on user's prompt
-      let initialItems = [];
-      if (domain === 'focus') {
-        const count = (numbers.find(n => n > 1 && n <= 12)) || 3;
-        const unit = prompt.toLowerCase().includes('chapter') ? 'Chapter' : 'Focus Block';
-        for (let i = 1; i <= count; i++) {
-          initialItems.push({ text: `${unit} ${i}: Active recall & core summary`, done: false });
-        }
-        initialItems.push({ text: 'Final 10-min self-test without notes', done: false });
-      } else if (domain === 'logistics') {
-        initialItems = [
-          { text: 'Confirm headcount & departure pin', done: true },
-          { text: 'Essentials kit: Water, powerbanks, lighting & first-aid', done: false },
-          { text: 'Food, snacks & charcoal/fuel supplies', done: false },
-          { text: 'Settle shared expenses before departure', done: false }
-        ];
-      } else {
-        initialItems = [
-          { text: `Clarify core outcome for: "${prompt.slice(0, 38)}${prompt.length > 38 ? '...' : ''}"`, done: false },
-          { text: 'Execute highest-leverage 15-minute step first', done: false },
-          { text: 'Review output & dissolve workspace', done: false }
-        ];
-      }
-
-      let items = [...initialItems];
-      AetherState.metrics.tasksTotal += items.length;
-      AetherState.metrics.tasksCompleted += items.filter(i => i.done).length;
-
-      card.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-              <h3 class="font-display font-semibold text-sm uppercase tracking-wider text-slate-200">
-                ${domain === 'logistics' ? 'Mission Readiness Checklist' : 'Atomic Action Breakdown'}
-              </h3>
-            </div>
-            <span id="checklist-counter" class="text-xs font-mono text-sky-300 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-400/20">0/0</span>
-          </div>
-
-          <div id="checklist-items" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
-        </div>
-
-        <div class="mt-4 pt-3 border-t border-white/10 flex gap-2">
-          <input type="text" id="new-task-input" placeholder="Add micro-step..." class="flex-1 bg-black/30 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400/50" />
-          <button id="add-task-btn" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs font-medium transition cursor-pointer">
-            + Add
-          </button>
-        </div>
-      `;
-
-      const listEl = card.querySelector('#checklist-items');
-      const counterEl = card.querySelector('#checklist-counter');
-      const inputEl = card.querySelector('#new-task-input');
-      const addBtn = card.querySelector('#add-task-btn');
-
-      function renderList() {
-        listEl.innerHTML = '';
-        const completedCount = items.filter(i => i.done).length;
-        counterEl.textContent = `${completedCount}/${items.length} DONE`;
-
-        items.forEach((item, index) => {
-          const row = document.createElement('div');
-          row.className = `flex items-center justify-between gap-3 p-3 rounded-xl border transition cursor-pointer ${
-            item.done
-              ? 'bg-emerald-500/10 border-emerald-400/25 text-slate-400 line-through'
-              : 'bg-white/[0.03] hover:bg-white/[0.06] border-white/10 text-slate-100'
-          }`;
-
-          row.innerHTML = `
-            <div class="flex items-center gap-3 flex-1 min-w-0">
-              <div class="w-5 h-5 rounded-lg flex items-center justify-center border shrink-0 transition ${
-                item.done ? 'bg-emerald-400 border-emerald-400 text-slate-950' : 'border-slate-500'
-              }">
-                ${item.done ? '✓' : ''}
-              </div>
-              <span class="text-xs sm:text-sm truncate">${escapeHtml(item.text)}</span>
-            </div>
-            <button class="del-btn text-slate-500 hover:text-rose-400 text-xs px-1.5" title="Remove">✕</button>
-          `;
-
-          row.addEventListener('click', (e) => {
-            if (e.target.classList.contains('del-btn')) {
-              if (items[index].done) AetherState.metrics.tasksCompleted--;
-              AetherState.metrics.tasksTotal--;
-              items.splice(index, 1);
-            } else {
-              items[index].done = !items[index].done;
-              AetherState.metrics.tasksCompleted += items[index].done ? 1 : -1;
-              if (items[index].done) playChime(659);
-            }
-            renderList();
-          });
-
-          listEl.appendChild(row);
-        });
-      }
-
-      function addNewItem() {
-        const val = inputEl.value.trim();
-        if (!val) return;
-        items.push({ text: val, done: false });
-        AetherState.metrics.tasksTotal++;
-        inputEl.value = '';
-        renderList();
-      }
-
-      addBtn.addEventListener('click', addNewItem);
-      inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') addNewItem();
-      });
-
-      renderList();
-      return card;
-    }
-
-    // ----------------------------------------------------------------------------
-    // WIDGET C: BUDGET & SPLIT-COST ARCHITECT
-    // ----------------------------------------------------------------------------
-    function createBudgetArchitectWidget(prompt, numbers, colSpan = 'md:col-span-7') {
-      // Detect total budget & headcount from prompt
-      const currency = prompt.includes('ريال') || prompt.toLowerCase().includes('sar') ? 'SAR' : '$';
-      const sortedNums = [...numbers].sort((a, b) => b - a);
-      const totalBudget = sortedNums.find(n => n >= 20) || 150;
-      const peopleCount = sortedNums.find(n => n >= 2 && n <= 15 && n !== totalBudget) || 4;
-
-      AetherState.metrics.budgetTotal = totalBudget;
-
-      let categories = [
-        { name: 'Food & Drinks', amount: Math.round(totalBudget * 0.45) },
-        { name: 'Gear / Supplies', amount: Math.round(totalBudget * 0.30) },
-        { name: 'Fuel / Transport', amount: Math.round(totalBudget * 0.20) }
+  }
+  setTimeout(typeLoop, deleting ? 22 : 42);
+}
+typeLoop();
+
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    synthesizeFromInput();
+  }
+});
+
+/* --- 3. Multi-Intent Synthesis Engine --- */
+function setLifespan(mins, btn) {
+  state.lifespanMins = mins;
+  document.querySelectorAll('.life-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function useSpark(text) {
+  inputEl.value = text;
+  synthesizeFromInput();
+}
+
+function synthesizeFromInput() {
+  const raw = inputEl.value.trim();
+  if (!raw) {
+    showToast('Describe a feeling, goal, or problem first.');
+    return;
+  }
+
+  const lower = raw.toLowerCase();
+  const nums = raw.match(/\d+/g)?.map(Number) || [];
+  let modules = [];
+  let accent = '#6366f1';
+  let archetype = 'ADAPTIVE MICRO-WORLD';
+
+  // Intent Detection
+  if (/focus|study|exam|work|chapter|pomodoro|code|build|ذاكر|اختبار|تركيز|شغل/.test(lower)) {
+    modules.push('timer', 'tasks');
+    accent = '#6366f1';
+    archetype = 'DEEP FOCUS SANCTUARY';
+    focusSeconds = (nums[0] && nums[0] <= 120 ? nums[0] : 25) * 60;
+    state.tasks = [
+      { text: 'Define single clear milestone for this session', done: false },
+      { text: 'Silence notifications & execute first block', done: false },
+      { text: 'Review output before world dissolves', done: false }
+    ];
+  }
+
+  if (/budget|money|split|cost|trip|price|sar|usd|ريال|ميزانية|قطة|فلوس/.test(lower)) {
+    if (!modules.includes('budget')) modules.push('budget');
+    accent = '#10b981';
+    archetype = 'FINANCIAL SPLIT ARCHITECT';
+    if (nums[0]) state.budget.total = nums[0];
+    if (nums[1] && nums[1] > 0 && nums[1] < 50) state.budget.people = nums[1];
+  }
+
+  if (/stress|anxious|sad|panic|breathe|vent|tired|overthink|قلق|متوتر|فضفضة|تعبان/.test(lower)) {
+    modules.push('breath', 'evaporate');
+    accent = '#06b6d4';
+    archetype = 'SOMATIC DECOMPRESSION CHAMBER';
+  }
+
+  if (/decide|decision|choose|vs|compare|option|محتار|قرار|اختيار/.test(lower)) {
+    modules.push('decision');
+    accent = '#f59e0b';
+    archetype = 'WEIGHTED DECISION MATRIX';
+    const parts = raw.split(/vs|or|أو/i);
+    if (parts.length >= 2) {
+      state.decisions = [
+        { name: parts[0].slice(-28).trim() || 'Path A', pro: 8, risk: 3 },
+        { name: parts[1].slice(0, 28).trim() || 'Path B', pro: 6, risk: 2 }
       ];
+    }
+  }
 
-      const card = document.createElement('div');
-      card.className = `glass-card rounded-3xl p-5 sm:p-6 flex flex-col justify-between ${colSpan}`;
+  if (/workout|pushup|counter|habit|rep|tally|تمرين|ضغط|عداد/.test(lower)) {
+    modules.push('counter', 'timer');
+    accent = '#ec4899';
+    archetype = 'KINETIC TALLY & PACE ENGINE';
+    focusSeconds = 60;
+    state.counter = { label: 'Session Target', val: 0, target: nums[0] || 50 };
+  }
+
+  // Fallback for any creative/unusual prompt
+  if (modules.length === 0) {
+    modules = ['tasks', 'scratchpad', 'timer'];
+    accent = '#8b5cf6';
+    archetype = 'BESPOKE SYNTHESIZED WORKSPACE';
+    state.tasks = [
+      { text: `Clarify core outcome for: "${raw.slice(0, 40)}"`, done: false },
+      { text: 'Execute immediate next step', done: false }
+    ];
+  }
+
+  state.prompt = raw;
+  state.archetype = archetype;
+  state.accent = accent;
+  state.modules = [...new Set(modules)];
+  state.expiresAt = Date.now() + state.lifespanMins * 60 * 1000;
+
+  applyThemeAccent(accent);
+  enterWorld();
+}
+
+function applyThemeAccent(hex) {
+  document.documentElement.style.setProperty('--accent', hex);
+  document.documentElement.style.setProperty('--accent-glow', hexToRgba(hex, 0.35));
+}
+
+function enterWorld() {
+  document.getElementById('zero-view').classList.add('hidden');
+  const worldEl = document.getElementById('world-view');
+  worldEl.classList.add('active');
+  document.getElementById('world-archetype').textContent = state.archetype;
+  document.getElementById('world-title').textContent = state.prompt;
+
+  renderModules();
+  startDecayClock();
+}
+
+/* --- 4. Dynamic Module Renderer --- */
+function addModule(type) {
+  if (!state.modules.includes(type)) {
+    state.modules.push(type);
+    renderModules();
+    showToast(`Injected ${type.toUpperCase()} module`);
+  } else {
+    showToast('Module already active in this world');
+  }
+}
+
+function removeModule(type) {
+  state.modules = state.modules.filter(m => m !== type);
+  renderModules();
+}
+
+function renderModules() {
+  const grid = document.getElementById('modules-grid');
+  grid.innerHTML = '';
+
+  state.modules.forEach(mod => {
+    const card = document.createElement('div');
+    card.className = 'module-card';
+
+    if (mod === 'timer') {
+      card.innerHTML = `
+        <div class="mod-head">
+          <span class="mod-title">Chronos Focus Pacer</span>
+          <button class="mod-close" onclick="removeModule('timer')">&times;</button>
+        </div>
+        <div class="timer-display" id="focus-clock">${formatSec(focusSeconds)}</div>
+        <div class="timer-presets">
+          <button class="ctrl-btn" onclick="setFocus(15)">15m</button>
+          <button class="ctrl-btn" onclick="setFocus(25)">25m</button>
+          <button class="ctrl-btn" onclick="setFocus(45)">45m</button>
+          <button class="ctrl-btn" onclick="setFocus(5)">5m Rest</button>
+        </div>
+        <div class="mod-row">
+          <button class="mod-btn" style="flex:1;" id="focus-toggle" onclick="toggleFocus()">${focusRunning ? 'Pause' : 'Start Session'}</button>
+          <button class="mod-btn secondary" onclick="setFocus(25)">Reset</button>
+        </div>
+      `;
+    }
+
+    if (mod === 'tasks') {
+      const listHtml = state.tasks.map((t, i) => `
+        <div class="task-item ${t.done ? 'done' : ''}" onclick="toggleTask(${i})">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="task-check">${t.done ? '✓' : ''}</span>
+            <span style="font-size:13.5px;">${escapeHtml(t.text)}</span>
+          </div>
+          <span style="color:var(--muted);font-size:12px;" onclick="event.stopPropagation();deleteTask(${i})">&times;</span>
+        </div>
+      `).join('');
 
       card.innerHTML = `
-        <div>
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              <h3 class="font-display font-semibold text-sm uppercase tracking-wider text-slate-200">Live Budget & Split Engine</h3>
-            </div>
-            <div class="text-xs font-mono px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-400/30">
-              CAP: ${currency}${totalBudget} • ${peopleCount} PEOPLE
-            </div>
-          </div>
-
-          <div id="budget-sliders" class="space-y-4 my-3"></div>
+        <div class="mod-head">
+          <span class="mod-title">Ephemeral Action Queue</span>
+          <button class="mod-close" onclick="removeModule('tasks')">&times;</button>
         </div>
+        <div class="mod-row">
+          <input class="mod-input" id="new-task-input" placeholder="Add micro-step..." onkeydown="if(event.key==='Enter')addTask()">
+          <button class="mod-btn" onclick="addTask()">Add</button>
+        </div>
+        <div class="task-list">${listHtml}</div>
+      `;
+    }
 
-        <div class="mt-4 pt-4 border-t border-white/10 grid grid-cols-3 gap-2 text-center">
-          <div class="bg-black/30 rounded-xl p-2.5 border border-white/5">
-            <div class="text-[10px] font-mono text-slate-400">ALLOCATED</div>
-            <div id="budget-used" class="font-mono text-sm sm:text-base font-bold text-white mt-0.5">${currency}0</div>
+    if (mod === 'budget') {
+      const perPerson = state.budget.people > 0 ? (state.budget.total / state.budget.people).toFixed(2) : state.budget.total;
+      card.innerHTML = `
+        <div class="mod-head">
+          <span class="mod-title">Instant Budget & Split</span>
+          <button class="mod-close" onclick="removeModule('budget')">&times;</button>
+        </div>
+        <div class="stat-big">${perPerson} <span style="font-size:14px;color:var(--muted);">/ person</span></div>
+        <div class="mod-row">
+          <div style="flex:1;">
+            <label style="font-size:11px;color:var(--muted);">Total Budget</label>
+            <input class="mod-input" type="number" value="${state.budget.total}" oninput="updateBudget('total', this.value)">
           </div>
-          <div class="bg-black/30 rounded-xl p-2.5 border border-white/5">
-            <div class="text-[10px] font-mono text-slate-400">REMAINING</div>
-            <div id="budget-left" class="font-mono text-sm sm:text-base font-bold text-emerald-400 mt-0.5">${currency}0</div>
-          </div>
-          <div class="bg-black/30 rounded-xl p-2.5 border border-white/5">
-            <div class="text-[10px] font-mono text-slate-400">PER PERSON</div>
-            <div id="budget-split" class="font-mono text-sm sm:text-base font-bold text-amber-300 mt-0.5">${currency}0</div>
+          <div style="width:100px;">
+            <label style="font-size:11px;color:var(--muted);">People</label>
+            <input class="mod-input" type="number" min="1" value="${state.budget.people}" oninput="updateBudget('people', this.value)">
           </div>
         </div>
       `;
+    }
 
-      const slidersContainer = card.querySelector('#budget-sliders');
-      const usedEl = card.querySelector('#budget-used');
-      const leftEl = card.querySelector('#budget-left');
-      const splitEl = card.querySelector('#budget-split');
+    if (mod === 'breath') {
+      card.innerHTML = `
+        <div class="mod-head">
+          <span class="mod-title">4-4-6 Somatic Pacer</span>
+          <button class="mod-close" onclick="removeModule('breath')">&times;</button>
+        </div>
+        <div class="breath-orb-wrap">
+          <div class="breath-orb" id="breath-orb"></div>
+          <div class="breath-label" id="breath-text">TAP START TO SYNC BREATH</div>
+        </div>
+        <button class="mod-btn" onclick="startBreathCycle()">Begin Resonance</button>
+      `;
+    }
 
-      function recalc() {
-        const allocated = categories.reduce((acc, c) => acc + c.amount, 0);
-        const remaining = totalBudget - allocated;
-        const perPerson = (allocated / peopleCount).toFixed(1);
+    if (mod === 'evaporate') {
+      card.innerHTML = `
+        <div class="mod-head">
+          <span class="mod-title">Thought Evaporator (Zero-Trace)</span>
+          <button class="mod-close" onclick="removeModule('evaporate')">&times;</button>
+        </div>
+        <textarea class="evap-area" id="evap-text" placeholder="Write what weighs on your mind. Nothing is saved. When ready, dissolve it into nothingness..."></textarea>
+        <button class="mod-btn secondary" onclick="evaporateThought()">Evaporate Thought</button>
+      `;
+    }
 
-        AetherState.metrics.budgetAllocated = allocated;
-
-        usedEl.textContent = `${currency}${allocated}`;
-        leftEl.textContent = `${currency}${remaining}`;
-        leftEl.className = `font-mono text-sm sm:text-base font-bold mt-0.5 ${remaining < 0 ? 'text-rose-400' : 'text-emerald-400'}`;
-        splitEl.textContent = `${currency}${perPerson}`;
-      }
-
-      categories.forEach((cat) => {
-        const row = document.createElement('div');
-        row.innerHTML = `
-          <div class="flex justify-between text-xs font-mono mb-1.5">
-            <span class="text-slate-300">${cat.name}</span>
-            <span class="val-label text-amber-300 font-semibold">${currency}${cat.amount}</span>
+    if (mod === 'decision') {
+      const rows = state.decisions.map((d, i) => {
+        const score = d.pro * 2 - d.risk;
+        return `
+          <div style="background:rgba(0,0,0,0.28);padding:10px;border-radius:12px;border:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <input class="mod-input" style="padding:4px 8px;font-weight:600;width:65%;" value="${escapeHtml(d.name)}" onchange="updateDecision(${i},'name',this.value)">
+              <span style="font-family:var(--mono);color:var(--accent);font-weight:700;">Score: ${score}</span>
+            </div>
+            <div style="display:flex;gap:10px;font-size:11.5px;color:var(--muted);">
+              <label style="flex:1;">Upside (${d.pro}/10)
+                <input type="range" min="1" max="10" value="${d.pro}" style="width:100%;" oninput="updateDecision(${i},'pro',this.value)">
+              </label>
+              <label style="flex:1;">Risk (${d.risk}/10)
+                <input type="range" min="1" max="10" value="${d.risk}" style="width:100%;" oninput="updateDecision(${i},'risk',this.value)">
+              </label>
+            </div>
           </div>
-          <input type="range" min="0" max="${totalBudget}" value="${cat.amount}" class="w-full" />
         `;
-        const slider = row.querySelector('input');
-        const valLabel = row.querySelector('.val-label');
-        slider.addEventListener('input', (e) => {
-          cat.amount = Number(e.target.value);
-          valLabel.textContent = `${currency}${cat.amount}`;
-          recalc();
-        });
-        slidersContainer.appendChild(row);
-      });
-
-      recalc();
-      return card;
-    }
-
-    // ----------------------------------------------------------------------------
-    // WIDGET D: SOMATIC BREATHING PACER (4-7-8 / BOX BREATHING)
-    // ----------------------------------------------------------------------------
-    function createBreathPacerWidget(colSpan = 'md:col-span-5') {
-      const card = document.createElement('div');
-      card.className = `glass-card rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-between text-center ${colSpan}`;
+      }).join('');
 
       card.innerHTML = `
-        <div class="w-full flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-teal-400"></span>
-            <h3 class="font-display font-semibold text-sm uppercase tracking-wider text-slate-200">Vagus Breath Pacer</h3>
-          </div>
-          <span class="text-[10px] font-mono text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-full">4-4-6 RHYTHM</span>
+        <div class="mod-head">
+          <span class="mod-title">Weighted Decision Matrix</span>
+          <button class="mod-close" onclick="removeModule('decision')">&times;</button>
         </div>
-
-        <div class="my-6 relative w-40 h-40 flex items-center justify-center">
-          <div class="absolute inset-0 rounded-full border border-teal-400/20"></div>
-          <div id="breath-circle" class="breath-orb w-20 h-20 rounded-full bg-gradient-to-tr from-teal-400/40 to-sky-400/40 border border-teal-300/60 shadow-[0_0_30px_rgba(45,212,191,0.35)] flex items-center justify-center">
-            <span id="breath-cue" class="font-display font-bold text-xs tracking-widest text-white uppercase">READY</span>
-          </div>
-        </div>
-
-        <button id="breath-toggle" class="w-full py-3 px-4 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-200 border border-teal-400/30 font-display font-semibold text-xs sm:text-sm transition cursor-pointer">
-          Begin Grounding Cycle
-        </button>
+        <div style="display:flex;flex-direction:column;gap:8px;">${rows}</div>
+        <button class="mod-btn secondary" onclick="addDecisionOption()">+ Add Option</button>
       `;
-
-      const circle = card.querySelector('#breath-circle');
-      const cue = card.querySelector('#breath-cue');
-      const btn = card.querySelector('#breath-toggle');
-      let active = false;
-      let cycleTimeout = null;
-
-      function runBreathCycle() {
-        if (!active) return;
-        // Inhale (4s)
-        cue.textContent = 'INHALE';
-        circle.style.transform = 'scale(1.65)';
-        playChime(396);
-
-        cycleTimeout = setTimeout(() => {
-          if (!active) return;
-          // Hold (4s)
-          cue.textContent = 'HOLD';
-          cycleTimeout = setTimeout(() => {
-            if (!active) return;
-            // Exhale (6s)
-            cue.textContent = 'EXHALE';
-            circle.style.transform = 'scale(0.95)';
-            playChime(285);
-            cycleTimeout = setTimeout(runBreathCycle, 6000);
-          }, 4000);
-        }, 4000);
-      }
-
-      btn.addEventListener('click', () => {
-        if (!active) {
-          active = true;
-          btn.textContent = 'Stop Pacer';
-          runBreathCycle();
-        } else {
-          active = false;
-          clearTimeout(cycleTimeout);
-          cue.textContent = 'READY';
-          circle.style.transform = 'scale(1)';
-          btn.textContent = 'Begin Grounding Cycle';
-        }
-      });
-
-      return card;
     }
 
-    // ----------------------------------------------------------------------------
-    // WIDGET E: EPHEMERAL THOUGHT DISSOLVER (CATHARTIC SHREDDER)
-    // ----------------------------------------------------------------------------
-    function createThoughtDissolverWidget(colSpan = 'md:col-span-7') {
-      const card = document.createElement('div');
-      card.className = `glass-card rounded-3xl p-5 sm:p-6 flex flex-col justify-between ${colSpan}`;
-
+    if (mod === 'counter') {
+      const pct = Math.min(100, Math.round((state.counter.val / state.counter.target) * 100));
       card.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-              <h3 class="font-display font-semibold text-sm uppercase tracking-wider text-slate-200">Thought Evaporator</h3>
-            </div>
-            <span id="dissolved-badge" class="text-[11px] font-mono text-slate-400">0 THOUGHTS RELEASED</span>
-          </div>
-          <p class="text-xs text-slate-400 mb-3">
-            Pour whatever is looping in your head below. Nothing is saved to any server or database—watch it disintegrate into light.
-          </p>
-          <textarea id="worry-box" rows="4" placeholder="Write your racing thoughts, worries, or mental noise here..." class="w-full bg-black/35 border border-white/10 rounded-2xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-teal-400/50 transition-all duration-700"></textarea>
+        <div class="mod-head">
+          <span class="mod-title">Kinetic Tally Counter</span>
+          <button class="mod-close" onclick="removeModule('counter')">&times;</button>
         </div>
-
-        <div class="mt-4 flex items-center justify-between gap-3">
-          <span class="text-[11px] font-mono text-slate-500">ZERO RETENTION GUARANTEED</span>
-          <button id="burn-thought-btn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-sky-500 text-slate-950 font-display font-bold text-xs sm:text-sm shadow-lg shadow-teal-500/20 active:scale-95 transition cursor-pointer">
-            Evaporate Thought ✨
-          </button>
+        <div class="stat-big">${state.counter.val} <span style="font-size:15px;color:var(--muted);">/ ${state.counter.target} (${pct}%)</span></div>
+        <div class="mod-row">
+          <button class="mod-btn" style="flex:1;" onclick="stepCounter(1)">+1</button>
+          <button class="mod-btn" style="flex:1;" onclick="stepCounter(5)">+5</button>
+          <button class="mod-btn" style="flex:1;" onclick="stepCounter(10)">+10</button>
+          <button class="mod-btn secondary" onclick="stepCounter(-state.counter.val)">0</button>
         </div>
       `;
-
-      const box = card.querySelector('#worry-box');
-      const btn = card.querySelector('#burn-thought-btn');
-      const badge = card.querySelector('#dissolved-badge');
-
-      btn.addEventListener('click', () => {
-        if (!box.value.trim()) {
-          showToast('Write a thought first to release it');
-          return;
-        }
-        box.style.filter = 'blur(14px)';
-        box.style.opacity = '0';
-        box.style.transform = 'scale(0.95) translateY(-10px)';
-        playChime(528);
-
-        setTimeout(() => {
-          box.value = '';
-          box.style.filter = 'blur(0px)';
-          box.style.opacity = '1';
-          box.style.transform = 'scale(1) translateY(0)';
-          AetherState.metrics.thoughtsDissolved++;
-          badge.textContent = `${AetherState.metrics.thoughtsDissolved} THOUGHTS RELEASED`;
-          showToast('Thought dissolved into the void');
-        }, 650);
-      });
-
-      return card;
     }
 
-    // ----------------------------------------------------------------------------
-    // WIDGET F: QUANTUM DECISION MATRIX
-    // ----------------------------------------------------------------------------
-    function createQuantumDeciderWidget(prompt, colSpan = 'md:col-span-7') {
-      const card = document.createElement('div');
-      card.className = `glass-card rounded-3xl p-5 sm:p-6 flex flex-col justify-between ${colSpan}`;
-
-      let options = [
-        { label: 'Option A (Bold / Growth Path)', weight: 75 },
-        { label: 'Option B (Safe / Stability Path)', weight: 60 }
-      ];
-
+    if (mod === 'scratchpad') {
       card.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-              <h3 class="font-display font-semibold text-sm uppercase tracking-wider text-slate-200">Weighted Decision Synthesizer</h3>
-            </div>
-            <span class="text-[10px] font-mono text-purple-300 bg-purple-500/15 px-2.5 py-0.5 rounded-full">CONVICTION ENGINE</span>
-          </div>
-
-          <div id="decision-options" class="space-y-3 mb-4"></div>
-
-          <div class="flex gap-2 mb-4">
-            <input type="text" id="new-opt-input" placeholder="Add another contender..." class="flex-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none" />
-            <button id="add-opt-btn" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-mono text-white cursor-pointer">+ Option</button>
-          </div>
+        <div class="mod-head">
+          <span class="mod-title">Ephemeral Idea Canvas</span>
+          <button class="mod-close" onclick="removeModule('scratchpad')">&times;</button>
         </div>
-
-        <div class="bg-black/40 border border-purple-400/25 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div class="text-[10px] font-mono text-purple-300 uppercase">SYNTHESIZED VERDICT</div>
-            <div id="decision-verdict" class="font-display font-bold text-sm sm:text-base text-white mt-0.5">Option A leads with 56% conviction</div>
-          </div>
-          <button id="quantum-flip-btn" class="px-4 py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-mono text-xs font-semibold shrink-0 transition active:scale-95 cursor-pointer">
-            ⚡ Quantum Tie-Break
-          </button>
-        </div>
+        <textarea class="evap-area" placeholder="Capture raw thoughts for your final artifact..." oninput="state.notes=this.value">${escapeHtml(state.notes)}</textarea>
       `;
-
-      const listEl = card.querySelector('#decision-options');
-      const verdictEl = card.querySelector('#decision-verdict');
-      const newOptInput = card.querySelector('#new-opt-input');
-      const addOptBtn = card.querySelector('#add-opt-btn');
-      const flipBtn = card.querySelector('#quantum-flip-btn');
-
-      function computeVerdict() {
-        if (options.length === 0) return;
-        const sorted = [...options].sort((a, b) => b.weight - a.weight);
-        const totalW = options.reduce((s, o) => s + o.weight, 0) || 1;
-        const share = Math.round((sorted[0].weight / totalW) * 100);
-        const verdictText = `${sorted[0].label} (${share}% alignment)`;
-        verdictEl.textContent = verdictText;
-        AetherState.metrics.decisionsMade = [verdictText];
-      }
-
-      function renderOptions() {
-        listEl.innerHTML = '';
-        options.forEach((opt, idx) => {
-          const row = document.createElement('div');
-          row.className = 'bg-white/[0.03] border border-white/10 rounded-xl p-3';
-          row.innerHTML = `
-            <div class="flex items-center justify-between gap-2 mb-2">
-              <input type="text" value="${escapeHtml(opt.label)}" class="opt-name bg-transparent text-xs sm:text-sm font-medium text-white focus:outline-none flex-1" />
-              <span class="opt-score font-mono text-xs text-purple-300">${opt.weight}%</span>
-            </div>
-            <input type="range" min="1" max="100" value="${opt.weight}" class="opt-slider w-full" />
-          `;
-          row.querySelector('.opt-name').addEventListener('input', (e) => {
-            options[idx].label = e.target.value;
-            computeVerdict();
-          });
-          row.querySelector('.opt-slider').addEventListener('input', (e) => {
-            options[idx].weight = Number(e.target.value);
-            row.querySelector('.opt-score').textContent = `${opt.weight}%`;
-            computeVerdict();
-          });
-          listEl.appendChild(row);
-        });
-        computeVerdict();
-      }
-
-      addOptBtn.addEventListener('click', () => {
-        const val = newOptInput.value.trim();
-        if (!val) return;
-        options.push({ label: val, weight: 50 });
-        newOptInput.value = '';
-        renderOptions();
-      });
-
-      flipBtn.addEventListener('click', () => {
-        const chosen = options[Math.floor(Math.random() * options.length)];
-        verdictEl.textContent = `🎲 Quantum Collapse: Go with "${chosen.label}"`;
-        AetherState.metrics.decisionsMade = [verdictEl.textContent];
-        playChime(741);
-      });
-
-      renderOptions();
-      return card;
     }
 
-    // ----------------------------------------------------------------------------
-    // WIDGET G: EPHEMERAL SCRATCHPAD
-    // ----------------------------------------------------------------------------
-    function createScratchpadWidget(colSpan = 'md:col-span-6', title = 'Ephemeral Scratchpad') {
-      const card = document.createElement('div');
-      card.className = `glass-card rounded-3xl p-5 sm:p-6 flex flex-col ${colSpan}`;
-      card.innerHTML = `
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-amber-300"></span>
-            <h3 class="font-display font-semibold text-sm uppercase tracking-wider text-slate-200">${escapeHtml(title)}</h3>
-          </div>
-          <span class="text-[10px] font-mono text-slate-400">VOLATILE MEMORY</span>
-        </div>
-        <textarea rows="4" placeholder="Capture fleeting insights before this micro-world dissolves..." class="w-full flex-1 bg-black/30 border border-white/10 rounded-2xl p-3.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-400/40"></textarea>
-      `;
-      const ta = card.querySelector('textarea');
-      ta.addEventListener('input', (e) => {
-        AetherState.metrics.notesCaptured = e.target.value;
-      });
-      return card;
-    }
+    grid.appendChild(card);
+  });
+}
 
-    // ----------------------------------------------------------------------------
-    // 6. EPHEMERAL LIFESPAN & DISSOLUTION INTO ARTIFACT RECEIPT
-    // ----------------------------------------------------------------------------
-    function setLifespan(minutes) {
-      AetherState.ttlMinutes = minutes;
-      AetherState.ttlRemainingSeconds = minutes * 60;
-
-      ['15', '60', '1440'].forEach(id => {
-        const btn = document.getElementById(`ttl-${id}`);
-        if (btn) {
-          btn.className = Number(id) === minutes
-            ? 'px-2.5 py-1 rounded-lg bg-white/15 text-white transition'
-            : 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition';
-        }
-      });
-
-      if (AetherState.ttlInterval) clearInterval(AetherState.ttlInterval);
-      updateCountdownDisplay();
-
-      AetherState.ttlInterval = setInterval(() => {
-        if (AetherState.ttlRemainingSeconds > 0) {
-          AetherState.ttlRemainingSeconds--;
-          updateCountdownDisplay();
-        } else {
-          dissolveMicroWorld();
-        }
-      }, 1000);
-    }
-
-    function updateCountdownDisplay() {
-      const s = AetherState.ttlRemainingSeconds;
-      const hrs = String(Math.floor(s / 3600)).padStart(2, '0');
-      const mins = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
-      const secs = String(s % 60).padStart(2, '0');
-      document.getElementById('ephemeral-countdown').textContent = `${hrs}:${mins}:${secs}`;
-    }
-
-    function dissolveMicroWorld() {
-      const microStage = document.getElementById('microworld-stage');
-      const receiptStage = document.getElementById('receipt-stage');
-
-      clearAllActiveIntervals();
-      playChime(396);
-
-      microStage.classList.add('dissolve-exit');
-
-      setTimeout(() => {
-        microStage.classList.add('hidden');
-        microStage.classList.remove('flex', 'dissolve-exit');
-
-        populateReceipt();
-        receiptStage.classList.remove('hidden');
-        receiptStage.classList.add('morph-enter');
-      }, 800);
-    }
-
-    function populateReceipt() {
-      const elapsedSec = Math.max(1, Math.round((Date.now() - AetherState.sessionStartTime) / 1000));
-      const m = AetherState.metrics;
-
-      let lines = [
-        `<div class="flex justify-between border-b border-white/10 pb-2"><span class="text-slate-500">INTENT SEED:</span><span class="text-white text-right max-w-[65%] truncate">"${escapeHtml(AetherState.prompt)}"</span></div>`,
-        `<div class="flex justify-between"><span class="text-slate-500">WORLD LIFESPAN:</span><span class="text-sky-300">${elapsedSec}s active in memory</span></div>`
-      ];
-
-      if (m.tasksTotal > 0) {
-        lines.push(`<div class="flex justify-between"><span class="text-slate-500">ACTIONS COMPLETED:</span><span class="text-emerald-400">${m.tasksCompleted} / ${m.tasksTotal} steps</span></div>`);
-      }
-      if (m.focusSecondsLogged > 0) {
-        lines.push(`<div class="flex justify-between"><span class="text-slate-500">DEEP FOCUS LOGGED:</span><span class="text-sky-300">${Math.ceil(m.focusSecondsLogged / 60)} min(s)</span></div>`);
-      }
-      if (m.budgetTotal > 0) {
-        lines.push(`<div class="flex justify-between"><span class="text-slate-500">BUDGET STRUCTURED:</span><span class="text-amber-300">${m.budgetAllocated} / ${m.budgetTotal}</span></div>`);
-      }
-      if (m.thoughtsDissolved > 0) {
-        lines.push(`<div class="flex justify-between"><span class="text-slate-500">THOUGHTS RELEASED:</span><span class="text-teal-300">${m.thoughtsDissolved} evaporated</span></div>`);
-      }
-      if (m.decisionsMade.length > 0) {
-        lines.push(`<div class="flex justify-between"><span class="text-slate-500">VERDICT:</span><span class="text-purple-300">${escapeHtml(m.decisionsMade[0])}</span></div>`);
-      }
-      if (m.notesCaptured.trim()) {
-        lines.push(`<div class="pt-2 border-t border-white/10"><div class="text-slate-500 mb-1">CAPTURED NOTE:</div><div class="text-slate-200 whitespace-pre-wrap">${escapeHtml(m.notesCaptured)}</div></div>`);
-      }
-
-      lines.push(`<div class="pt-2 border-t border-white/10 flex justify-between text-[10px] text-slate-500"><span>STATUS: DOM PURGED</span><span>ARCHITECT: GEMINI</span></div>`);
-
-      document.getElementById('receipt-content').innerHTML = lines.join('');
-    }
-
-    function copyReceipt() {
-      const text = document.getElementById('receipt-content').innerText + '\n— Synthesized by AETHER (Developed by Gemini)';
-      const tempArea = document.createElement('textarea');
-      tempArea.value = text;
-      document.body.appendChild(tempArea);
-      tempArea.select();
-      try {
-        document.execCommand('copy');
-        showToast('Ephemeral Artifact copied to clipboard');
-      } catch (e) {
-        showToast('Unable to copy');
-      }
-      document.body.removeChild(tempArea);
-    }
-
-    function resetToZeroUI() {
-      clearAllActiveIntervals();
-      applyAuraPalette({ primary: '#38bdf8', secondary: '#818cf8', accent: '#2dd4bf' });
-
-      document.getElementById('receipt-stage').classList.add('hidden');
-      document.getElementById('microworld-stage').classList.add('hidden');
-      document.getElementById('microworld-stage').classList.remove('flex');
-
-      const voidStage = document.getElementById('void-stage');
-      voidStage.classList.remove('hidden');
-      voidStage.classList.add('morph-enter');
-      intentInput.value = '';
-      intentInput.focus();
-    }
-
-    function returnToVoidConfirm() {
-      const microStage = document.getElementById('microworld-stage');
-      if (!microStage.classList.contains('hidden')) {
-        dissolveMicroWorld();
+/* --- Module Helpers --- */
+function formatSec(s) {
+  const m = Math.floor(s / 60).toString().padStart(2, '0');
+  const sec = (s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+function setFocus(mins) {
+  clearInterval(focusInterval);
+  focusRunning = false;
+  focusSeconds = mins * 60;
+  renderModules();
+}
+function toggleFocus() {
+  if (focusRunning) {
+    clearInterval(focusInterval);
+    focusRunning = false;
+  } else {
+    focusRunning = true;
+    focusInterval = setInterval(() => {
+      if (focusSeconds > 0) {
+        focusSeconds--;
+        const el = document.getElementById('focus-clock');
+        if (el) el.textContent = formatSec(focusSeconds);
       } else {
-        resetToZeroUI();
+        clearInterval(focusInterval);
+        focusRunning = false;
+        showToast('Focus cycle complete!');
       }
-    }
+    }, 1000);
+  }
+  renderModules();
+}
 
-    function clearAllActiveIntervals() {
-      if (AetherState.ttlInterval) clearInterval(AetherState.ttlInterval);
-      AetherState.activeIntervals.forEach(id => clearInterval(id));
-      AetherState.activeIntervals = [];
-    }
+function addTask() {
+  const inp = document.getElementById('new-task-input');
+  if (!inp || !inp.value.trim()) return;
+  state.tasks.push({ text: inp.value.trim(), done: false });
+  renderModules();
+}
+function toggleTask(i) {
+  state.tasks[i].done = !state.tasks[i].done;
+  renderModules();
+}
+function deleteTask(i) {
+  state.tasks.splice(i, 1);
+  renderModules();
+}
 
-    // ----------------------------------------------------------------------------
-    // 7. MODAL & UTILITIES
-    // ----------------------------------------------------------------------------
-    function openManifestoModal() {
-      document.getElementById('manifesto-modal').classList.remove('hidden');
-    }
+function updateBudget(field, val) {
+  state.budget[field] = Math.max(0, Number(val));
+  renderModules();
+}
 
-    function closeManifestoModal() {
-      document.getElementById('manifesto-modal').classList.add('hidden');
-    }
+function startBreathCycle() {
+  clearInterval(breathInterval);
+  const orb = document.getElementById('breath-orb');
+  const lbl = document.getElementById('breath-text');
+  if (!orb || !lbl) return;
 
-    document.getElementById('manifesto-modal').addEventListener('click', (e) => {
-      if (e.target.id === 'manifesto-modal') closeManifestoModal();
-    });
+  const runPhase = () => {
+    lbl.textContent = 'INHALE (4s)...';
+    orb.style.transform = 'scale(1.45)';
+    setTimeout(() => {
+      if (!document.getElementById('breath-orb')) return;
+      lbl.textContent = 'HOLD (4s)...';
+    }, 4000);
+    setTimeout(() => {
+      if (!document.getElementById('breath-orb')) return;
+      lbl.textContent = 'EXHALE SLOWLY (6s)...';
+      orb.style.transform = 'scale(0.85)';
+    }, 8000);
+  };
+  runPhase();
+  breathInterval = setInterval(runPhase, 14000);
+}
 
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.style.opacity = '1';
-      toast.style.transform = 'translate(-50%, 0)';
-      clearTimeout(toast._t);
-      toast._t = setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translate(-50%, -8px)';
-      }, 2400);
-    }
+function evaporateThought() {
+  const area = document.getElementById('evap-text');
+  if (!area || !area.value.trim()) return;
+  area.classList.add('dissolving');
+  setTimeout(() => {
+    area.value = '';
+    area.classList.remove('dissolving');
+    showToast('Thought dissolved into the void.');
+  }, 1450);
+}
 
-    function formatMMSS(sec) {
-      const m = String(Math.floor(sec / 60)).padStart(2, '0');
-      const s = String(sec % 60).padStart(2, '0');
-      return `${m}:${s}`;
-    }
+function updateDecision(i, key, val) {
+  state.decisions[i][key] = key === 'name' ? val : Number(val);
+  renderModules();
+}
+function addDecisionOption() {
+  state.decisions.push({ name: `Option ${state.decisions.length + 1}`, pro: 5, risk: 5 });
+  renderModules();
+}
 
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+function stepCounter(delta) {
+  state.counter.val = Math.max(0, state.counter.val + delta);
+  renderModules();
+}
+
+/* --- 5. Procedural Web Audio Brown Noise --- */
+let audioCtx = null, noiseNode = null, soundOn = false;
+function toggleSoundscape() {
+  const btn = document.getElementById('audio-btn');
+  if (!soundOn) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const bufferSize = 2 * audioCtx.sampleRate;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    let lastOut = 0.0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      output[i] = (lastOut + (0.02 * white)) / 1.02;
+      lastOut = output[i];
+      output[i] *= 0.18;
     }
-  </script>
+    noiseNode = audioCtx.createBufferSource();
+    noiseNode.buffer = noiseBuffer;
+    noiseNode.loop = true;
+    noiseNode.connect(audioCtx.destination);
+    noiseNode.start(0);
+    soundOn = true;
+    btn.textContent = 'Sound: Brown Noise';
+  } else {
+    if (noiseNode) noiseNode.stop();
+    if (audioCtx) audioCtx.close();
+    soundOn = false;
+    btn.textContent = 'Sound: Off';
+  }
+}
+
+/* --- 6. Ephemeral Lifespan & Serverless Share --- */
+function startDecayClock() {
+  clearInterval(decayInterval);
+  decayInterval = setInterval(() => {
+    const left = state.expiresAt - Date.now();
+    if (left <= 0) {
+      clearInterval(decayInterval);
+      dissolveWorld();
+      return;
+    }
+    const mins = Math.floor(left / 60000);
+    const secs = Math.floor((left % 60000) / 1000);
+    document.getElementById('decay-timer').textContent =
+      `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }, 1000);
+}
+
+function shareWorld() {
+  try {
+    const payload = btoa(encodeURIComponent(JSON.stringify(state)));
+    const url = `${location.origin}${location.pathname}#w=${payload}`;
+    navigator.clipboard.writeText(url);
+    showToast('Ephemeral World link copied!');
+  } catch (e) {
+    showToast('Unable to encode link.');
+  }
+}
+
+function loadSharedWorld() {
+  if (location.hash.startsWith('#w=')) {
+    try {
+      const raw = decodeURIComponent(atob(location.hash.slice(3)));
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.expiresAt > Date.now()) {
+        state = parsed;
+        applyThemeAccent(state.accent || '#6366f1');
+        enterWorld();
+      } else {
+        showToast('That shared micro-world has already evaporated.');
+        history.replaceState(null, '', location.pathname);
+      }
+    } catch (e) {}
+  }
+}
+loadSharedWorld();
+
+/* --- 7. Dissolution & Artifact Receipt --- */
+function dissolveWorld() {
+  clearInterval(decayInterval);
+  clearInterval(focusInterval);
+  clearInterval(breathInterval);
+  if (soundOn) toggleSoundscape();
+
+  const doneTasks = state.tasks.filter(t => t.done).map(t => `  [✓] ${t.text}`).join('\n');
+  const receipt = [
+    `AETHER EPHEMERAL ARTIFACT`,
+    `----------------------------------------`,
+    `Intent: ${state.prompt}`,
+    `Archetype: ${state.archetype}`,
+    `Dissolved: ${new Date().toLocaleTimeString()}`,
+    doneTasks ? `\nCompleted Actions:\n${doneTasks}` : '',
+    state.modules.includes('budget') ? `\nBudget Split: ${state.budget.total} / ${state.budget.people} = ${(state.budget.total / Math.max(1, state.budget.people)).toFixed(2)} each` : '',
+    state.modules.includes('counter') ? `\nFinal Tally: ${state.counter.val} / ${state.counter.target}` : '',
+    state.notes ? `\nNotes:\n${state.notes}` : '',
+    `----------------------------------------`,
+    `Engineered by Gemini // AETHER v1.0`
+  ].filter(Boolean).join('\n');
+
+  document.getElementById('receipt-content').textContent = receipt;
+  openModal('receipt-modal');
+}
+
+function copyReceipt() {
+  const txt = document.getElementById('receipt-content').textContent;
+  navigator.clipboard.writeText(txt);
+  showToast('Artifact copied to clipboard');
+}
+
+function finalizeReset() {
+  closeModal('receipt-modal');
+  resetToVoid();
+}
+
+function resetToVoid() {
+  clearInterval(decayInterval);
+  clearInterval(focusInterval);
+  clearInterval(breathInterval);
+  if (soundOn) toggleSoundscape();
+  history.replaceState(null, '', location.pathname);
+  inputEl.value = '';
+  applyThemeAccent('#6366f1');
+  document.getElementById('world-view').classList.remove('active');
+  document.getElementById('zero-view').classList.remove('hidden');
+}
+
+/* --- Modals & Helpers --- */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
+</script>
 </body>
 </html>
